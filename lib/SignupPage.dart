@@ -60,7 +60,7 @@ class _SignupPageState extends State<SignupPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Padding(
-                    padding: EdgeInsets.fromLTRB(0, 0, 0, 44),
+                    padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
                     child: Text(
                       "Sign Up",
                       style: TextStyle(
