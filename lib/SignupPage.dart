@@ -96,6 +96,7 @@ class _SignupPageState extends State<SignupPage> {
                   SizedBox(
                     width: 342,
                     child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         SizedBox(
                           width: 230,
@@ -117,8 +118,9 @@ class _SignupPageState extends State<SignupPage> {
 
                           ),
                         ),
+                      SizedBox(width: 10.0,),
                       SizedBox(
-                          width: 110,
+                          width: 100,
                           height: 51,
                           child: ElevatedButton(
                             onPressed: (){
@@ -153,7 +155,7 @@ class _SignupPageState extends State<SignupPage> {
                             child: Text(
                               "중복확인",
                               style: TextStyle(
-                                fontSize: 20,
+                                fontSize: 18,
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
