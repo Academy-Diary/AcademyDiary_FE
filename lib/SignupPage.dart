@@ -3,14 +3,14 @@ import 'package:flutter/services.dart';
 
 import 'package:email_validator/email_validator.dart'; // 이메일 형식 확인
 
-class SigninPage extends StatefulWidget {
-  const SigninPage({super.key});
+class SignupPage extends StatefulWidget {
+  const SignupPage({super.key});
 
   @override
-  State<SigninPage> createState() => _SigninPageState();
+  State<SignupPage> createState() => _SignupPageState();
 }
 
-class _SigninPageState extends State<SigninPage> {
+class _SignupPageState extends State<SignupPage> {
   late ScrollController _scrollControl = ScrollController();
   TextEditingController _idController = TextEditingController();
   TextEditingController _pwController = TextEditingController();
@@ -62,7 +62,7 @@ class _SigninPageState extends State<SigninPage> {
                   Padding(
                     padding: EdgeInsets.fromLTRB(0, 0, 0, 44),
                     child: Text(
-                      "Sign in",
+                      "Sign Up",
                       style: TextStyle(
                         fontSize: 40,
                       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:academy_manager/LoginPage.dart';
-import 'package:academy_manager/SigninPage.dart';
+import 'package:academy_manager/SignupPage.dart';
 
 void main(){
   runApp(const MyApp());
@@ -25,7 +25,7 @@ class MyApp extends StatelessWidget {
       home: const MainPage(),
       routes: {
         "/login" : (context) => const LoginPage(),
-        "/signin" : (context) => const SigninPage(),
+        "/signin" : (context) => const SignupPage(),
       },
     );
   }
