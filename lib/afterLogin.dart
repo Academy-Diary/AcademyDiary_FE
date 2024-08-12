@@ -5,30 +5,25 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        iconTheme: IconThemeData(color: Colors.white),//AppBar내 아이콘 컬러 데이터 지정 // 모든 아이콘에 동일하게 적용
         backgroundColor: Color(0xFF565D6D), // 앱 바 색상을 진한 회색으로 설정
         title: Text(
           'AcademyPro',
           style: TextStyle(color: Colors.white), // 제목 텍스트 색상을 흰색으로 설정
         ),
         centerTitle: true, // 제목을 가운데 정렬
-        leading: IconButton(
-          icon: Icon(Icons.menu, color: Colors.white), // 햄버거 메뉴 아이콘 색상 흰색으로 설정
-          onPressed: () {
-            Scaffold.of(context).openDrawer(); // Drawer 열기
-          },
-        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.notifications, color: Colors.white), // 알림 아이콘 색상 흰색으로 설정
+            icon: Icon(Icons.notifications, ), // 알림 아이콘 지정.
             onPressed: () {},
           ),
           IconButton(
-            icon: Icon(Icons.search, color: Colors.white), // 검색 아이콘 색상 흰색으로 설정
+            icon: Icon(Icons.search, ), // 검색 아이콘 지정
             onPressed: () {},
           ),
         ],
       ),
-      drawer: Drawer(), // 햄버거 메뉴를 위한 Drawer
+      drawer: MenuDrawer(name: "현우진", email: "test@abc.com", subjects: ["미적분", "영어", "국어"]),// 햄버거 메뉴를 위한 Drawer
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -150,6 +145,181 @@ class HomePage extends StatelessWidget {
     );
   }
 }
+
+class MenuDrawer extends StatefulWidget {
+  final String name;
+  final String email;
+  final List<String> subjects;
+  const MenuDrawer({super.key, required this.name, required this.email, required this.subjects});
+
+  @override
+  State<MenuDrawer> createState() => _MenuDrawerState(name: name, email:email, subjects: subjects);
+}
+
+class _MenuDrawerState extends State<MenuDrawer> {
+  final String name;
+  final String email;
+  final List<String> subjects;
+  bool isNoticeClicked = false; // 공지사항 클릭 여부
+  bool isGradeClicked = false; // 성적관리 클릭 여부
+  bool isExpenseClicked = false; // 학원비 클릭 여부
+  bool isSubjectClicked = false; // 강의목록 클릭 여부
+  _MenuDrawerState({required this.name, required this.email, required this.subjects});
+
+
+  @override
+  Widget build(BuildContext context) {
+    List<Widget> menu_subject = [];
+    subjects.forEach((subject){
+      menu_subject.add(
+        ListTile(
+          title: Text(subject, style: TextStyle(fontSize: 14),),
+          onTap: (){
+            // subject 별 이동 이벤트
+          },
+        )
+      );
+    });
+    return Drawer(
+      child: Column(
+        //padding: EdgeInsets.zero,
+        children: [
+          SizedBox(
+            height: 140,
+            child: const UserAccountsDrawerHeader(
+              decoration: BoxDecoration(
+                color: Color(0xFF565D6D),
+              ),
+              accountName: Text("현우진"),
+              accountEmail: Text("test@abc.com"),
+            ),
+          ),
+          ListTile(
+            shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
+            title: Text("공지사항",style: TextStyle(fontSize: 16)),
+            onTap: (){
+              setState(() {
+                isNoticeClicked = !isNoticeClicked;
+              });
+            },
+            trailing: (!isNoticeClicked)? Icon(Icons.arrow_drop_down):Icon(Icons.arrow_drop_up),
+          ),
+          if(isNoticeClicked)
+            Padding(
+              padding: EdgeInsets.fromLTRB(15, 0, 0, 0),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: Text("학원공지" ,style: TextStyle(fontSize: 15)),
+                    onTap: (){
+                      // 학원 공지 화면으로 이동
+                    },
+                  ),
+                  ListTile(
+                    title: Text("수업공지",style: TextStyle(fontSize: 15)),
+                    onTap: (){
+                      //수업 공지 화면으로 이동
+                    },
+                  ),
+                ],
+              ),
+            ), //서브메뉴 끝
+          ListTile(
+            shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
+            title: Text("성적관리"),
+            onTap: (){
+              setState(() {
+                isGradeClicked = !isGradeClicked;
+                if(!isGradeClicked) isSubjectClicked=false; // 성적관리가 접히면 안의 수강과목도 자동으로 접힘
+              });
+            },
+            trailing: (!isGradeClicked)? Icon(Icons.arrow_drop_down):Icon(Icons.arrow_drop_up),
+        ),
+          if(isGradeClicked)
+            Padding(
+              padding: EdgeInsets.fromLTRB(15, 0, 0, 0),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: Text("성적조회" ,style: TextStyle(fontSize: 15)),
+                    onTap: (){
+                      // 성적조회 화면으로 이동
+                    },
+                  ),
+                  ListTile(
+                    shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
+                    title: Text("강의목록",style: TextStyle(fontSize: 15)),
+                    onTap: (){
+                      // 강의목록 추가 서브메뉴 열기
+                      setState(() {
+                        isSubjectClicked = !isSubjectClicked;
+                      });
+                    },
+                    trailing: (!isSubjectClicked)? Icon(Icons.arrow_drop_down):Icon(Icons.arrow_drop_up),
+                  ),
+                  if(isSubjectClicked)
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(15, 0, 0, 0),
+                      child: Column(
+                        children: menu_subject,
+                      ),
+                    )//2차 서브메뉴 끝
+                ],
+              ),
+            ), // 서브메뉴 끝
+          ListTile(
+            shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
+            title: Text("학원비"),
+            onTap: (){
+              setState(() {
+                isExpenseClicked = !isExpenseClicked;
+              });
+            },
+            trailing: (!isExpenseClicked)? Icon(Icons.arrow_drop_down):Icon(Icons.arrow_drop_up),
+        ),
+          if(isExpenseClicked)
+            Padding(
+              padding: EdgeInsets.fromLTRB(15, 0, 0, 0),
+              child: Column(
+                children: [
+                  ListTile(
+                    title: Text("청구서 확인" ,style: TextStyle(fontSize: 15)),
+                    onTap: (){
+                      // 청구서 확인 화면으로 이동
+                    },
+                  ),
+                  ListTile(
+                    title: Text("납부 현황",style: TextStyle(fontSize: 15)),
+                    onTap: (){
+                      // 납부 현황 화면 으로 이동
+                    },
+                  ),
+                ],
+              ),
+            ),//서브메뉴 끝
+          Spacer(),
+          SizedBox(
+            width: 150,
+            height: 51,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: ElevatedButton(
+                onPressed: (){
+                  //로그아웃 기능 구현
+                },
+                child: Text("로그아웃", style: TextStyle(color:Colors.white),),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF87888B)
+                ),
+              ),
+            ),
+          )
+        ]
+      ),
+    );
+  }
+}
+
 
 class NoticeTile extends StatelessWidget {
   final String title;
