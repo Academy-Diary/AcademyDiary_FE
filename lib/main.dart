@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'afterLogin.dart';  // afterLogin.dart 파일을 import
 import 'package:academy_manager/LoginPage.dart';
 import 'package:academy_manager/SignupPage.dart';
 
@@ -9,9 +9,6 @@ void main(){
 
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
