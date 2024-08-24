@@ -10,6 +10,14 @@ class SubmitAcademyKey extends StatefulWidget {
 
 class _SubmitAcademyKeyState extends State<SubmitAcademyKey> {
   late ScrollController _scrollController = ScrollController();
+  
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _scrollController.dispose();
+  }
   @override
   Widget build(BuildContext context) {
     Color mainColor = Color(0xFF565D6D);
