@@ -1,6 +1,7 @@
 import 'package:academy_manager/AppBar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'NoticeDetail.dart';  // NoticeDetail 화면을 import
 
 class AfterLoginPage extends StatelessWidget {
   @override
@@ -148,6 +149,12 @@ class NoticeTile extends StatelessWidget {
       subtitle: Text('$author - $date', style: TextStyle(fontSize: 14.sp)),
       onTap: () {
         // 공지사항 상세보기 페이지로 이동
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => NoticeDetail(),
+          ),
+        );
       },
     );
   }
