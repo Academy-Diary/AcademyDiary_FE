@@ -1,3 +1,6 @@
+import 'package:academy_manager/AppSettings.dart';
+import 'package:academy_manager/MemberInfoEdit.dart';
+import 'package:academy_manager/MyPage.dart';
 import 'package:flutter/material.dart';
 import 'afterLogin.dart';  // afterLogin.dart 파일을 import
 import 'package:academy_manager/LoginPage.dart';
