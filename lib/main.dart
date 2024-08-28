@@ -1,5 +1,9 @@
+import 'package:academy_manager/AppSettings.dart';
+import 'package:academy_manager/MemberInfoEdit.dart';
+import 'package:academy_manager/MyPage.dart';
+import 'package:academy_manager/NoticeList.dart';
 import 'package:flutter/material.dart';
-import 'afterLogin.dart';  // afterLogin.dart 파일을 import
+import 'AfterLogin.dart';  // AfterLogin.dart 파일을 import
 import 'package:academy_manager/LoginPage.dart';
 import 'package:academy_manager/SignupPage.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // 화면크기에 따라 ui 크기 설정 및 재배치
