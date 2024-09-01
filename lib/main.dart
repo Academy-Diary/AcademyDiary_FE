@@ -28,7 +28,6 @@ class MyApp extends StatelessWidget {
         routes: {
           "/login": (context) => const LoginPage(),
           "/signin": (context) => const SignupPage(),
-          "/afterLogin": (context) => AfterLoginPage(), // 경로 추가
         },
       ),
     );
