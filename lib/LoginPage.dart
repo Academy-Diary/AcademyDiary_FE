@@ -1,7 +1,6 @@
 import 'package:academy_manager/AfterLogin.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // MethodChannel 사용
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'package:dio/dio.dart'; // DIO 패키지로 http 통신
@@ -31,9 +30,6 @@ class _LoginpageState extends State<LoginPage> {
   //Secure Storage 접근을 위한 변수 초기화
   static final storage = new FlutterSecureStorage();
 
-  // ErrorInterceptor와 channel로 연결
-  static const MethodChannel _channel = MethodChannel('com.example/toast');
-
   @override
   void initState() {
     // TODO: implement initState
@@ -42,7 +38,6 @@ class _LoginpageState extends State<LoginPage> {
     WidgetsBinding.instance.addPostFrameCallback((_){
       _asyncMethod();
     });
-    _channel.setMethodCallHandler(_handleMethodCall);
   }
 
   _asyncMethod() async{
@@ -58,15 +53,6 @@ class _LoginpageState extends State<LoginPage> {
           )), )*/
     }
   }
-
-  Future<void> _handleMethodCall(MethodCall call) async {
-    if (call.method == 'showToast') {
-      String message = call.arguments['message'];
-      // 여기서 Toast 메시지를 띄우는 코드 작성
-      Fluttertoast.showToast(msg: message);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     const mainColor = Color(0xff565D6D);
