@@ -4,6 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'NoticeDetail.dart';  // NoticeDetail 화면을 import
 
 class AfterLoginPage extends StatelessWidget {
+  String token;
+  AfterLoginPage({super.key, required this.token});
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context); // ScreenUtil 초기화
