@@ -21,6 +21,7 @@ class _LoginpageState extends State<LoginPage> {
   TextEditingController _pwController = TextEditingController();
   String? userInfo; //user 정보 저장을 위한 변수
 
+
   // 자동로그인 체크 여부 저장 변수
   bool isAutoLogin = false;
 
@@ -30,29 +31,33 @@ class _LoginpageState extends State<LoginPage> {
   //Secure Storage 접근을 위한 변수 초기화
   static final storage = new FlutterSecureStorage();
 
+  var dio;
+
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    // 비동기로 Flutter Secure Storage 정보를 불러오는 작업
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      _asyncMethod();
-    });
+
+    dio = new Dio();
+    dio.interceptors.add(
+        InterceptorsWrapper(
+          onError: (DioError error, ErrorInterceptorHandler handler) {
+            if (error.response?.statusCode == 400) {
+              Map<String, dynamic> res = jsonDecode(error.response.toString());
+              Fluttertoast.showToast(msg: res["message"]);
+            }
+            return handler.next(error);
+          },
+        )
+    ); // StatusCode가 400일 때 서버에서 리턴하는 "message"를 toastMessage로 출력
+    dio.options.baseUrl =
+    'http://192.168.0.118:8000'; //개발 중 백엔드 서버는 본인이 돌림.
+    dio.options.connectTimeout = 5000; // 5s
+    dio.options.receiveTimeout = 3000;
+    dio.options.headers =
+    {'Content-Type': 'application/json'};
   }
 
-  _asyncMethod() async{
-    userInfo = await storage.read(key: "login");
-    print(userInfo);
-    // userInfo는 {"login": id id_value password password_value} 형식임
-
-    if(userInfo != null){
-      // userInfo가 있으면? 메인페이지로 넘어가게 한다.
-      /*Navigator.pushAndRemoveUntil(context,
-          CupertinoPageRoute(builder: (context)=> AfterLoginPage(
-
-          )), )*/
-    }
-  }
   @override
   Widget build(BuildContext context) {
     const mainColor = Color(0xff565D6D);
@@ -154,31 +159,18 @@ class _LoginpageState extends State<LoginPage> {
                       }
                       else {
                         // id, pw를 서버에 보내 맞는 정보인지 확인.
-                        var dio = new Dio();
-                        dio.interceptors.add(
-                          InterceptorsWrapper(
-                            onError: (DioError error, ErrorInterceptorHandler handler) {
-                              if (error.response?.statusCode == 400) {
-                                Map<String, dynamic> res = jsonDecode(error.response.toString());
-                                Fluttertoast.showToast(msg: res["message"]);
-                              }
-                              return handler.next(error);
-                            },
-                          )
-                        ); // StatusCode가 400일 때 서버에서 리턴하는 "message"를 toastMessage로 출력
-                        dio.options.baseUrl =
-                        'http://192.168.0.118:8000'; //개발 중 백엔드 서버는 본인이 돌림.
-                        dio.options.connectTimeout = 5000; // 5s
-                        dio.options.receiveTimeout = 3000;
-                        dio.options.headers =
-                        {'Content-Type': 'application/json'};
                         var response;
                         try {
                           response = await dio.post('/user/login',
                               data: {"user_id": id, "password": pw});
                           Map<String, dynamic> res = jsonDecode(
                               response.toString());
-                          print(res["accessToken"]);
+                          if(isAutoLogin){
+                            await storage.write(
+                                key: "login",
+                                value: "useer_id $id password $pw"
+                            );
+                          }
                           Navigator.pushReplacement(context,
                             CupertinoPageRoute(
                                 builder: (context)=> AfterLoginPage(
