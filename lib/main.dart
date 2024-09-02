@@ -8,6 +8,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'AfterLogin.dart';  // AfterLogin.dart 파일을 import
 import 'package:academy_manager/LoginPage.dart';
 import 'package:academy_manager/SignupPage.dart';
@@ -74,6 +75,13 @@ class _MainPageState extends State<MainPage> {
     userInfo = await storage.read(key: "login");
     print(userInfo);
     if(userInfo != null){
+      Fluttertoast.showToast(
+          msg: "로그인중..",
+        fontSize: 16.0,
+        backgroundColor: Colors.grey,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+      );
       // userInfo가 있으면? 로그인하여 토큰값을 가져와 페이지를 넘긴다..
       String? id = userInfo?.split(" ")[1];
       String? pw = userInfo?.split(" ")[3];
