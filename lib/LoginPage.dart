@@ -163,8 +163,6 @@ class _LoginpageState extends State<LoginPage> {
                         try {
                           response = await dio.post('/user/login',
                               data: {"user_id": id, "password": pw});
-                          Map<String, dynamic> res = jsonDecode(
-                              response.toString());
                           if(isAutoLogin){
                             await storage.write(
                                 key: "login",
@@ -173,9 +171,7 @@ class _LoginpageState extends State<LoginPage> {
                           }
                           Navigator.pushReplacement(context,
                             CupertinoPageRoute(
-                                builder: (context)=> AfterLoginPage(
-                                  token: res['accessToken'],
-                                ),
+                                builder: (context)=> AfterLoginPage(),
                               ),
                           );
                         } catch (err) {

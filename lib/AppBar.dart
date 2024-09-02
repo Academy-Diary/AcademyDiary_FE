@@ -1,6 +1,11 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class MyAppBar extends StatelessWidget{
   const MyAppBar({super.key});
@@ -34,8 +39,7 @@ class MenuDrawer extends StatefulWidget {
   final String name;
   final String email;
   final List<String> subjects;
-  final String token;
-  const MenuDrawer({super.key, required this.token, required this.name, required this.email, required this.subjects});
+  const MenuDrawer({super.key, required this.name, required this.email, required this.subjects});
 
   @override
   State<MenuDrawer> createState() => _MenuDrawerState(name: name, email: email, subjects: subjects);
@@ -49,8 +53,50 @@ class _MenuDrawerState extends State<MenuDrawer> {
   bool isGradeClicked = false;
   bool isExpenseClicked = false;
   bool isSubjectClicked = false;
+  String? token; // 토큰
+  String? refreshToken; //refreshToken
 
-  _MenuDrawerState({required this.name, required this.email, required this.subjects});
+  var dio = new Dio();
+
+  static final storage = new FlutterSecureStorage();
+
+  _MenuDrawerState({ required this.name, required this.email, required this.subjects});
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _asyncMethod();
+    });
+
+    // http 통신을 위한 기본 option 설정
+    dio.options.baseUrl='http://192.168.0.118:8000';
+    dio.options.connectTimeout = 5000; // 5s
+    dio.options.receiveTimeout = 3000;
+    dio.options.headers={
+      'Content-Type': 'application/json',
+      'Authrization': token
+    };
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onError: (DioError error, ErrorInterceptorHandler handler){
+          if(error.response?.statusCode == 400){
+            print(token);
+            Map<String, dynamic> res = jsonDecode(error.response.toString());
+            Fluttertoast.showToast(msg: res["message"]);
+          }
+          return handler.next(error);
+        }
+      )
+    );
+  }
+
+  _asyncMethod() async{
+    token = await storage.read(key: 'accessToken');
+    refreshToken = await storage.read(key: 'refreshToken');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -191,9 +237,16 @@ class _MenuDrawerState extends State<MenuDrawer> {
           Spacer(),
           ListTile(
             title: Text("로그아웃", style: TextStyle(fontSize: 16.sp)),
-            onTap: () {
+            onTap: () async{
               // 로그아웃 처리
+              var response;
+              try{
+                response = await dio.post('/user/logout');
+                Map<String, dynamic> res = jsonDecode(response.toString());
+                await storage.delete(key: "login"); // secure storage에 저장된 아이디,패스워드 값 지우기
+              }catch(err){
 
+              }
             },
           ),
         ],

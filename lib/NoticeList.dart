@@ -4,22 +4,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/NoticeDetail.dart';
 
 class NoticeList extends StatefulWidget {
-  String token;
-  NoticeList({super.key, required this.token});
   @override
-  _NoticeListState createState() => _NoticeListState(token: token);
+  _NoticeListState createState() => _NoticeListState();
 }
 
 class _NoticeListState extends State<NoticeList> {
-  String token;
-  _NoticeListState({required this.token});
   String _selectedCategory = '학원공지';
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(token: token, name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
+      drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(
@@ -61,7 +57,7 @@ class _NoticeListState extends State<NoticeList> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => NoticeDetail(token: token,)),
+            MaterialPageRoute(builder: (context) => NoticeDetail()),
           );
         },
       ),
@@ -72,7 +68,7 @@ class _NoticeListState extends State<NoticeList> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => NoticeDetail(token: token,)),
+            MaterialPageRoute(builder: (context) => NoticeDetail()),
           );
         },
       ),
@@ -88,7 +84,7 @@ class _NoticeListState extends State<NoticeList> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => NoticeDetail(token: token,)),
+            MaterialPageRoute(builder: (context) => NoticeDetail()),
           );
         },
       ),
@@ -99,7 +95,7 @@ class _NoticeListState extends State<NoticeList> {
         onTap: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => NoticeDetail(token: token,)),
+            MaterialPageRoute(builder: (context) => NoticeDetail()),
           );
         },
       ),

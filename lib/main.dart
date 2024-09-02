@@ -1,9 +1,3 @@
-import 'dart:convert';
-
-import 'package:academy_manager/AppSettings.dart';
-import 'package:academy_manager/MemberInfoEdit.dart';
-import 'package:academy_manager/MyPage.dart';
-import 'package:academy_manager/NoticeList.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -86,13 +80,13 @@ class _MainPageState extends State<MainPage> {
       String? id = userInfo?.split(" ")[1];
       String? pw = userInfo?.split(" ")[3];
       var response = await dio.post("/user/login", data: {"user_id" : id, "password" : pw});
-      Map<String, dynamic> res = jsonDecode(response.toString());
+      print(response.headers['set-cookie']);
+      storage.write(key: "refreshToken", value: response.headers['set-cookie']);
+      storage.write(key: "accessToken", value: response.data['accessToken']);
       Navigator.pushReplacement(
           context,
           CupertinoPageRoute(
-              builder: (context) => AfterLoginPage(
-                token: res['accessToken'],
-              ),
+              builder: (context) => AfterLoginPage(),
           )
       );
     }

@@ -10,7 +10,7 @@ class MyPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(token: token, name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
+      drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(
@@ -52,7 +52,7 @@ class MyPage extends StatelessWidget {
                 // MemberInfoEdit 화면으로 이동
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MemberInfoEdit(token: token,)),
+                  MaterialPageRoute(builder: (context) => MemberInfoEdit()),
                 );
               },
               child: Text('회원정보 수정', style: TextStyle(color: Colors.white, fontSize: 16.sp)),

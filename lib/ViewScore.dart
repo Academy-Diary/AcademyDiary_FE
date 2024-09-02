@@ -6,11 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class ViewScore extends StatefulWidget {
-  String token;
-  ViewScore({super.key, required this.token});
-
   @override
-  State<ViewScore> createState() => _ViewScoreState(token: token);
+  State<ViewScore> createState() => _ViewScoreState();
 }
 
 class _ViewScoreState extends State<ViewScore> {
@@ -21,8 +18,6 @@ class _ViewScoreState extends State<ViewScore> {
   final _category = ["모의고사", "단원평가", "쪽지시험"]; // 테스트 데이터
   final _subjects = ["전과목", "미적분", "영어", "국어"]; //테스트 데이터
 
-  String token;
-  _ViewScoreState({required this.token});
   @override
   void initState() {
     // TODO: implement initState
@@ -39,7 +34,7 @@ class _ViewScoreState extends State<ViewScore> {
 
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(token: token, name: "현우진", email: "aaa@test.com", subjects: ["미적분", "영어", "국어"],),
+      drawer: MenuDrawer(name: "현우진", email: "aaa@test.com", subjects: ["미적분", "영어", "국어"],),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(16.w),

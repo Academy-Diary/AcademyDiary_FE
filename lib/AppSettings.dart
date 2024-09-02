@@ -3,23 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppSettings extends StatefulWidget {
-  String token;
-
-  AppSettings({super.key, required this.token});
 
   @override
-  _AppSettingsState createState() => _AppSettingsState(token: this.token);
+  _AppSettingsState createState() => _AppSettingsState();
 }
 
 class _AppSettingsState extends State<AppSettings> {
-  String token;
-  _AppSettingsState({required this.token});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(token: token, name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
+      drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(

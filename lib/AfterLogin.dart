@@ -4,8 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'NoticeDetail.dart';  // NoticeDetail 화면을 import
 
 class AfterLoginPage extends StatelessWidget {
-  String token;
-  AfterLoginPage({super.key, required this.token});
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +13,7 @@ class AfterLoginPage extends StatelessWidget {
 
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(token: token, name: "현우진", email: "test@abc.com", subjects: ["미적분", "영어", "국어"]),
+      drawer: MenuDrawer(name: "현우진", email: "test@abc.com", subjects: ["미적분", "영어", "국어"]),
       body: Padding(
         padding: EdgeInsets.all(16.0.w),
         child: Column(
@@ -86,13 +84,11 @@ class AfterLoginPage extends StatelessWidget {
                 child: ListView(
                   children: [
                     NoticeTile(
-                      token: token,
                       title: '공지 1',
                       author: '길영',
                       date: '2024.07.01',
                     ),
                     NoticeTile(
-                      token: token,
                       title: '공지 2',
                       author: '길영',
                       date: '2024.07.05',
@@ -144,9 +140,8 @@ class NoticeTile extends StatelessWidget {
   final String title;
   final String author;
   final String date;
-  final String token;
 
-  NoticeTile({required this.token, required this.title, required this.author, required this.date});
+  NoticeTile({required this.title, required this.author, required this.date});
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +153,7 @@ class NoticeTile extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => NoticeDetail(token: token,),
+            builder: (context) => NoticeDetail(),
           ),
         );
       },
