@@ -169,8 +169,21 @@ class _LoginpageState extends State<LoginPage> {
                                 value: "useer_id $id password $pw"
                             );
                           }
+                          storage.delete(key: 'accessToken');
+                          storage.write(key: 'accessToken', value: response.data['accessToken']);
+                          storage.delete(key: 'refreshToken');
+                          storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
+
+                          Fluttertoast.showToast(
+                              msg: "로그인중...",
+                            backgroundColor: Colors.grey,
+                            fontSize: 16,
+                            timeInSecForIosWeb: 1,
+                            gravity: ToastGravity.BOTTOM,
+                          );
+
                           Navigator.pushReplacement(context,
-                            CupertinoPageRoute(
+                            MaterialPageRoute(
                                 builder: (context)=> AfterLoginPage(),
                               ),
                           );

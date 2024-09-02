@@ -81,7 +81,7 @@ class _MainPageState extends State<MainPage> {
       String? pw = userInfo?.split(" ")[3];
       var response = await dio.post("/user/login", data: {"user_id" : id, "password" : pw});
       print(response.headers['set-cookie']);
-      storage.write(key: "refreshToken", value: response.headers['set-cookie']);
+      storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
       storage.write(key: "accessToken", value: response.data['accessToken']);
       Navigator.pushReplacement(
           context,
@@ -155,73 +155,3 @@ class _MainPageState extends State<MainPage> {
     );
   }
 }
-
-
-
-/*class MainPage extends StatelessWidget {
-  const MainPage({super.key});
-
-
-  @override
-  Widget build(BuildContext context) {
-    const backColor = Color(0xffD9D9D9);
-    const mainColor = Color(0xff565D6D);
-    return Scaffold(
-
-      backgroundColor: backColor,
-      body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, // 화면 세로 중앙으로 정렬
-            children: [
-              Text(
-                "AcademyPro",
-                style: TextStyle(
-                  fontSize: 40.sp,
-                ),
-              ),
-              SizedBox(height: 86.5.h), // 수직 간격 조정
-              SizedBox(
-                width: 185.0.w,
-                height: 63.0.h,
-                child: ElevatedButton(
-                  child: Text(
-                    "로그인",
-                    style: TextStyle(
-                      fontSize: 24.sp, // 텍스트 크기 조정
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil("/login", (route) => false); // 로그인 페이지 이동, 첫 화면은 지움
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: mainColor,
-                  ),
-                ),
-              ),
-              SizedBox(height: 50.h), // 수직 간격 조정
-              SizedBox(
-                width: 185.0.w,
-                height: 63.0.h,
-                child: ElevatedButton(
-                  child: Text(
-                    "회원가입",
-                    style: TextStyle(
-                      fontSize: 24.sp, // 텍스트 크기 조정
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pushNamed("/signin"); // 회원가입 페이지 이동. 첫 화면은 지우지 않음.
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: mainColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}*/

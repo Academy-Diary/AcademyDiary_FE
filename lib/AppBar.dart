@@ -7,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+import 'package:academy_manager/main.dart';
+
 class MyAppBar extends StatelessWidget{
   const MyAppBar({super.key});
 
@@ -75,27 +77,36 @@ class _MenuDrawerState extends State<MenuDrawer> {
     dio.options.baseUrl='http://192.168.0.118:8000';
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
-    dio.options.headers={
-      'Content-Type': 'application/json',
-      'Authrization': token
-    };
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onError: (DioError error, ErrorInterceptorHandler handler){
-          if(error.response?.statusCode == 400){
-            print(token);
-            Map<String, dynamic> res = jsonDecode(error.response.toString());
-            Fluttertoast.showToast(msg: res["message"]);
-          }
-          return handler.next(error);
-        }
-      )
-    );
   }
 
   _asyncMethod() async{
     token = await storage.read(key: 'accessToken');
     refreshToken = await storage.read(key: 'refreshToken');
+
+    // header 추가
+    dio.options.headers={
+      'Content-Type': 'application/json',
+    };
+
+    print("여기 아래 refreshToken");
+    print(refreshToken);
+
+    dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler){
+            options.headers['Authorization'] = token;
+            options.headers['cookie'] = refreshToken;
+            return handler.next(options);
+          },
+            onError: (DioError error, ErrorInterceptorHandler handler){
+              if(error.response?.statusCode == 400){
+                Map<String, dynamic> res = jsonDecode(error.response.toString());
+                Fluttertoast.showToast(msg: res["message"]);
+              }
+              return handler.next(error);
+            }
+        )
+    );
   }
 
   @override
@@ -244,6 +255,9 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 response = await dio.post('/user/logout');
                 Map<String, dynamic> res = jsonDecode(response.toString());
                 await storage.delete(key: "login"); // secure storage에 저장된 아이디,패스워드 값 지우기
+                await storage.delete(key: 'accessToken');
+                await storage.delete(key: 'refreshToken');
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MyApp()));
               }catch(err){
 
               }
