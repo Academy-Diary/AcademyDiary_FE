@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class MyAppBar extends StatelessWidget{
@@ -33,7 +34,8 @@ class MenuDrawer extends StatefulWidget {
   final String name;
   final String email;
   final List<String> subjects;
-  const MenuDrawer({super.key, required this.name, required this.email, required this.subjects});
+  final String token;
+  const MenuDrawer({super.key, required this.token, required this.name, required this.email, required this.subjects});
 
   @override
   State<MenuDrawer> createState() => _MenuDrawerState(name: name, email: email, subjects: subjects);
@@ -191,6 +193,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
             title: Text("로그아웃", style: TextStyle(fontSize: 16.sp)),
             onTap: () {
               // 로그아웃 처리
+
             },
           ),
         ],

@@ -3,11 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/AppBar.dart';
 
 class MemberInfoEdit extends StatelessWidget {
+  String token;
+  MemberInfoEdit({required this.token});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
+      drawer: MenuDrawer(token: token, name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.all(16.w),
         child: Column(

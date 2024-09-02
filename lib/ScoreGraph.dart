@@ -4,13 +4,17 @@ import 'package:academy_manager/AppBar.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ScoreGraph extends StatefulWidget {
-  const ScoreGraph({super.key});
+  String token;
+  ScoreGraph({super.key, required this.token});
 
   @override
-  State<ScoreGraph> createState() => _ScoreGraphState();
+  State<ScoreGraph> createState() => _ScoreGraphState(token: token);
 }
 
 class _ScoreGraphState extends State<ScoreGraph> {
+  String token;
+  _ScoreGraphState({required this.token});
+
   //테스트 데이터
   final _category = ["모의고사", "단원평가", "쪽지시험"];
   final _graph = ["성적 추이 그래프", "전체 학생 점수 분포도"];
@@ -31,7 +35,7 @@ class _ScoreGraphState extends State<ScoreGraph> {
     ScreenUtil.init(context);
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: "현우진", email: "aaa@test.com", subjects: ["미적분", "영어", "국어"],),
+      drawer: MenuDrawer(token: token, name: "현우진", email: "aaa@test.com", subjects: ["미적분", "영어", "국어"],),
       body: SafeArea(
           child: Padding(
             padding: EdgeInsets.all(16.w),
