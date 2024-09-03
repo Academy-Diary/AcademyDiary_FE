@@ -4,13 +4,13 @@ import 'package:academy_manager/AppBar.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ScoreGraph extends StatefulWidget {
-  const ScoreGraph({super.key});
 
   @override
   State<ScoreGraph> createState() => _ScoreGraphState();
 }
 
 class _ScoreGraphState extends State<ScoreGraph> {
+
   //테스트 데이터
   final _category = ["모의고사", "단원평가", "쪽지시험"];
   final _graph = ["성적 추이 그래프", "전체 학생 점수 분포도"];

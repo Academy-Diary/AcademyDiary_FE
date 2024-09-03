@@ -1,8 +1,8 @@
-import 'package:academy_manager/AppSettings.dart';
-import 'package:academy_manager/MemberInfoEdit.dart';
-import 'package:academy_manager/MyPage.dart';
-import 'package:academy_manager/NoticeList.dart';
+import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'AfterLogin.dart';  // AfterLogin.dart 파일을 import
 import 'package:academy_manager/LoginPage.dart';
 import 'package:academy_manager/SignupPage.dart';
@@ -28,21 +28,76 @@ class MyApp extends StatelessWidget {
         routes: {
           "/login": (context) => const LoginPage(),
           "/signin": (context) => const SignupPage(),
-          "/afterLogin": (context) => AfterLoginPage(), // 경로 추가
         },
       ),
     );
   }
 }
 
-class MainPage extends StatelessWidget {
+class MainPage extends StatefulWidget {
   const MainPage({super.key});
+
+  @override
+  State<MainPage> createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> {
+  static final storage = new FlutterSecureStorage();
+  String? userInfo;
+  var dio; // dio 패키지 사용을 위한 변수
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    // 비동기로 Flutter Secure Storage 정보를 불러오는 작업
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _asyncMethod();
+    });
+
+    dio = new Dio();
+    dio.options.baseUrl =
+    'http://192.168.0.118:8000'; //개발 중 백엔드 서버는 본인이 돌림.
+    dio.options.connectTimeout = 5000; // 5s
+    dio.options.receiveTimeout = 3000;
+    dio.options.headers =
+    {'Content-Type': 'application/json'};
+  }
+
+  _asyncMethod()async{
+    userInfo = await storage.read(key: "login");
+    print(userInfo);
+    if(userInfo != null){
+      Fluttertoast.showToast(
+          msg: "로그인중..",
+        fontSize: 16.0,
+        backgroundColor: Colors.grey,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+      );
+      // userInfo가 있으면? 로그인하여 토큰값을 가져와 페이지를 넘긴다..
+      String? id = userInfo?.split(" ")[1];
+      String? pw = userInfo?.split(" ")[3];
+      var response = await dio.post("/user/login", data: {"user_id" : id, "password" : pw});
+      print(response.headers['set-cookie']);
+      storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
+      storage.write(key: "accessToken", value: response.data['accessToken']);
+      Navigator.pushReplacement(
+          context,
+          CupertinoPageRoute(
+              builder: (context) => AfterLoginPage(),
+          )
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     const backColor = Color(0xffD9D9D9);
     const mainColor = Color(0xff565D6D);
     return Scaffold(
+
       backgroundColor: backColor,
       body: SafeArea(
         child: Center(

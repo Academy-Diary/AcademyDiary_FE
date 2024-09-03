@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/MemberInfoEdit.dart';  // MemberInfoEdit.dart 파일 import
 
 class MyPage extends StatelessWidget {
+  String token;
+  MyPage({super.key, required this.token});
   @override
   Widget build(BuildContext context) {
     return Scaffold(

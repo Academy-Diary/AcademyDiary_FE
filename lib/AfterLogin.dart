@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'NoticeDetail.dart';  // NoticeDetail 화면을 import
 
 class AfterLoginPage extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context); // ScreenUtil 초기화
@@ -12,7 +13,7 @@ class AfterLoginPage extends StatelessWidget {
 
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: const MenuDrawer(name: "현우진", email: "test@abc.com", subjects: ["미적분", "영어", "국어"]),
+      drawer: MenuDrawer(name: "현우진", email: "test@abc.com", subjects: ["미적분", "영어", "국어"]),
       body: Padding(
         padding: EdgeInsets.all(16.0.w),
         child: Column(

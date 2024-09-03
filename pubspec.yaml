@@ -38,6 +38,10 @@ dependencies:
   email_validator: ^3.0.0
   flutter_screenutil: ^5.9.3
   fl_chart: ^0.68.0
+  flutter_secure_storage: ^5.0.2 # 자동로그인 정보를 저장하기 위핸 보안 저장소
+  dio: ^4.0.6 # http를 사용
+  fluttertoast: ^8.2.8
+  
 
 dev_dependencies:
   flutter_test:
