@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -87,9 +86,6 @@ class _MenuDrawerState extends State<MenuDrawer> {
     dio.options.headers={
       'Content-Type': 'application/json',
     };
-
-    print("여기 아래 refreshToken");
-    print(refreshToken);
 
     dio.interceptors.add(
         InterceptorsWrapper(
