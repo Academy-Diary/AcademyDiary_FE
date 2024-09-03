@@ -405,28 +405,31 @@ class _SignupPageState extends State<SignupPage> {
                                 // 회원가입 성공
                                 // TODO: 로그인 기능 추가
                                 if(values[6].isEmpty){
-                                  Navigator.pushReplacement(context,
+                                  //이전까지 탐색한 모든 페이지 지우고 다음 페이지로 이동
+                                  Navigator.pushAndRemoveUntil(context,
                                       MaterialPageRoute(
                                           builder: (context)=>AfterSignUp(
                                               name: values[0],
                                               role: 1, // 학생이면 1 학부모이면 0
                                               isKey: false
                                           )
-                                      )
+                                      ),
+                                      (route)=>false
                                   );
                                 }else{
                                   // 회원가입 후 자동으로 등록신청
                                   // TODO: 초대키 등록 api 사용.
 
-                                  // 신청완료 후 화면 넘어감
-                                  Navigator.pushReplacement(context,
+                                  // 신청완료 후 화면 넘어감. 이전에 탐색한 모든 화면은 지움
+                                  Navigator.pushAndRemoveUntil(context,
                                       MaterialPageRoute(
                                           builder: (context)=>AfterSignUp(
                                               name: values[0],
                                               role: 1, // 학생이면 1 학부모이면 0
                                               isKey: true
                                           )
-                                      )
+                                      ),
+                                      (route)=>false
                                   );
                                 }
                               }
