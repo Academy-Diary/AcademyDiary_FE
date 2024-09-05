@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: false,
         ),
-        home: MainPage(), // 앱 시작 시 MainPage를 표시
+        home: AfterLoginPage(), // 앱 시작 시 MainPage를 표시
         routes: {
           "/login": (context) => const LoginPage(),
           "/signin": (context) => const SignupPage(),

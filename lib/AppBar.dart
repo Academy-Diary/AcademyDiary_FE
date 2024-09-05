@@ -27,7 +27,7 @@ class MyAppBar extends StatelessWidget{
           onPressed: () {},
         ),
         IconButton(
-          icon: Icon(Icons.search),
+          icon: Icon(Icons.person),
           onPressed: () {},
         ),
       ],
