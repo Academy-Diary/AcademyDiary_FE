@@ -47,9 +47,12 @@ class _MyPageState extends State<MyPage> {
     id = await storage.read(key: 'id');
 
     var response = await dio.get('/user/'+id.toString()+'/basic-info');
-    name = response.data['user_name'];
-    email = response.data['email'];
-    phone = response.data['phone_number'];
+    setState(() {
+      name = response.data['user_name'];
+      id = id;
+      email = response.data['email'];
+      phone = response.data['phone_number'];
+    });
   }
 
   @override
