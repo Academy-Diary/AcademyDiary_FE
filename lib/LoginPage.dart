@@ -1,4 +1,5 @@
 import 'package:academy_manager/AfterLogin.dart';
+import 'package:academy_manager/AfterSignup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -158,6 +159,13 @@ class _LoginpageState extends State<LoginPage> {
                         );
                       }
                       else {
+                        Fluttertoast.showToast(
+                          msg: "로그인중...",
+                          backgroundColor: Colors.grey,
+                          fontSize: 16,
+                          timeInSecForIosWeb: 1,
+                          gravity: ToastGravity.BOTTOM,
+                        );
                         // id, pw를 서버에 보내 맞는 정보인지 확인.
                         var response;
                         try {
@@ -173,20 +181,32 @@ class _LoginpageState extends State<LoginPage> {
                           storage.write(key: 'accessToken', value: response.data['accessToken']);
                           storage.delete(key: 'refreshToken');
                           storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
+                          storage.delete(key: 'id');
+                          storage.write(key: 'id', value: id);
 
-                          Fluttertoast.showToast(
-                              msg: "로그인중...",
-                            backgroundColor: Colors.grey,
-                            fontSize: 16,
-                            timeInSecForIosWeb: 1,
-                            gravity: ToastGravity.BOTTOM,
-                          );
+                          // 사용자 정보 afterLoginPage로 넘김
+                          String name, email,  phone;
+                          name = response.data['user']['user_name'];
+                          email = response.data['user']['email'];
+                          phone = response.data['user']['phone_number'];
 
-                          Navigator.pushReplacement(context,
-                            MaterialPageRoute(
-                                builder: (context)=> AfterLoginPage(),
+                          if(response.data['userStatus']!= null && response.data['userStatus']['status'] == "APPROVED"){
+                            // 원장의 승인 되면 AfterLoginPage로 이동
+                            Navigator.pushReplacement(context,
+                              MaterialPageRoute(
+                                builder: (context)=> AfterLoginPage(name: name, email: email, id: id, phone: phone,),
                               ),
-                          );
+                            );
+                          }else{
+                            // 원장 승인 없으면 초대키 입력 창으로 이동
+                            String tmp = response.data['user']['role'];
+                            int role = (tmp=="STUDENT")? 1: 0;
+                            Navigator.pushReplacement(context,
+                              MaterialPageRoute(
+                                builder: (context)=> AfterSignUp(name: name, role: role, isKey: false,),
+                              ),
+                            );
+                          }
                         } catch (err) {
 
                         }
