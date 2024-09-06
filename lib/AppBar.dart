@@ -93,7 +93,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
     dio.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler){
-            options.headers['Authorization'] = token;
+            options.headers['Authorization'] = 'Bear '+token.toString();
             options.headers['cookie'] = refreshToken;
             return handler.next(options);
           },
