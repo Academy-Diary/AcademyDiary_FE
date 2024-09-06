@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:academy_manager/MyPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -28,7 +29,9 @@ class MyAppBar extends StatelessWidget{
         ),
         IconButton(
           icon: Icon(Icons.search),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(context, MaterialPageRoute(builder: (builder)=> MyPage()));
+          },
         ),
       ],
     );
