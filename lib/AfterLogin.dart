@@ -4,6 +4,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'NoticeDetail.dart';  // NoticeDetail 화면을 import
 
 class AfterLoginPage extends StatelessWidget {
+  String name, id, email, phone;
+  AfterLoginPage({super.key, required this.name, required this.id, required this.email, required this.phone});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +15,7 @@ class AfterLoginPage extends StatelessWidget {
 
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: "현우진", email: "test@abc.com", subjects: ["미적분", "영어", "국어"]),
+      drawer: MenuDrawer(name: name, email: email, subjects: ["미적분", "영어", "국어"]),
       body: Padding(
         padding: EdgeInsets.all(16.0.w),
         child: Column(
@@ -21,7 +23,7 @@ class AfterLoginPage extends StatelessWidget {
           children: [
             Center(
               child: Text(
-                '현우진(학생)님 환영합니다',
+                name+'님 환영합니다',
                 style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
               ),
             ),
