@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:academy_manager/AppSettings.dart';
+import 'package:academy_manager/MyPage.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -8,8 +10,11 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:academy_manager/main.dart';
 
-class MyAppBar extends StatelessWidget{
-  const MyAppBar({super.key});
+class MyAppBar extends StatelessWidget {
+  final bool isSettings; // isSettings 플래그 추가
+  final String? token;
+
+  const MyAppBar({super.key, this.isSettings = false, this.token}); // 기본값은 false로 설정
 
   @override
   PreferredSizeWidget build(BuildContext context) {
@@ -27,8 +32,21 @@ class MyAppBar extends StatelessWidget{
           onPressed: () {},
         ),
         IconButton(
-          icon: Icon(Icons.person),
-          onPressed: () {},
+          icon: isSettings ? Icon(Icons.settings) : Icon(Icons.person), // 조건에 따라 아이콘 변경
+          onPressed: () {
+            if (isSettings) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AppSettings()),
+              );
+              // 설정 화면으로 이동
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyPage(token: token ?? 'default_token')),
+              );
+            }
+          },
         ),
       ],
     );
@@ -89,11 +107,11 @@ class _MenuDrawerState extends State<MenuDrawer> {
 
     dio.interceptors.add(
         InterceptorsWrapper(
-          onRequest: (options, handler){
-            options.headers['Authorization'] = token;
-            options.headers['cookie'] = refreshToken;
-            return handler.next(options);
-          },
+            onRequest: (options, handler){
+              options.headers['Authorization'] = token;
+              options.headers['cookie'] = refreshToken;
+              return handler.next(options);
+            },
             onError: (DioError error, ErrorInterceptorHandler handler){
               if(error.response?.statusCode == 400){
                 Map<String, dynamic> res = jsonDecode(error.response.toString());
@@ -264,4 +282,3 @@ class _MenuDrawerState extends State<MenuDrawer> {
     );
   }
 }
-

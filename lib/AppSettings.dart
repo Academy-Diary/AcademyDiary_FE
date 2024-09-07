@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AppSettings extends StatefulWidget {
 
+
   @override
   _AppSettingsState createState() => _AppSettingsState();
 }

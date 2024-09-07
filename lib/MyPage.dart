@@ -6,10 +6,11 @@ import 'package:academy_manager/MemberInfoEdit.dart';  // MemberInfoEdit.dart �
 class MyPage extends StatelessWidget {
   String token;
   MyPage({super.key, required this.token});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyAppBar().build(context),
+      appBar: MyAppBar(isSettings: true).build(context), // isSettings 값을 true로 설정
       drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
