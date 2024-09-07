@@ -2,10 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/AppBar.dart';
 
-class MemberInfoEdit extends StatelessWidget {
+class MemberInfoEdit extends StatefulWidget {
   String name, email, phone, id;
   FileImage image;
   MemberInfoEdit({super.key, required this.name, required this.email, required this.phone, required this.id, required this.image});
+
+  @override
+  State<MemberInfoEdit> createState() => _MemberInfoEditState(name: name, email: email, phone: phone, id: id, image: image);
+}
+
+class _MemberInfoEditState extends State<MemberInfoEdit> {
+  String name, email, phone, id;
+  FileImage image;
+
+  _MemberInfoEditState({required this.name, required this.email, required this.phone, required this.id, required this.image});
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +72,17 @@ class MemberInfoEdit extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w),
                 backgroundColor: Color(0xFF565D6D),
               ),
-              onPressed: () {},
+              onPressed: () {
+                submit();
+              },
               child: Text('저장', style: TextStyle(color: Colors.white, fontSize: 16.sp)),
             ),
           ],
         ),
       ),
     );
+  }
+  submit(){
+
   }
 }
