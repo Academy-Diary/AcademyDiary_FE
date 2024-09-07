@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +7,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/AppBar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http_parser/http_parser.dart';
+import 'package:image_picker/image_picker.dart';
 
 class MemberInfoEdit extends StatefulWidget {
   String name, email, phone, id;
@@ -18,7 +22,9 @@ class MemberInfoEdit extends StatefulWidget {
 class _MemberInfoEditState extends State<MemberInfoEdit> {
   String name, email, phone, id;
   FileImage image;
+  XFile? newImage; // 변경 사진 저장 변수
   String? accessToken, refreshToken;
+  bool isChangeImage = false; // 프로필 사진이 변경됐는지 여부 확인
   static final storage = new FlutterSecureStorage();
 
   var dio;
@@ -77,14 +83,14 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
         child: Column(
           children: [
             CircleAvatar(
-              backgroundImage: image,
+              backgroundImage: newImage==null? image: FileImage(File(newImage!.path)),
               radius: 50.r,
               backgroundColor: Colors.grey[300],
             ),
             SizedBox(height: 8.h),
             TextButton(
                 onPressed: (){
-
+                  changeImage();
                 },
                 child: Text('사진 편집', style: TextStyle(fontSize: 14.sp))),
             SizedBox(height: 20.h),
@@ -163,6 +169,7 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
   }
   submit() async{
     try {
+      // 기본정보 변경
       var response = await dio.put('/user/' + id + '/basic-info',
           data: {
             "password": controller[0].text,
@@ -170,15 +177,33 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
             'phone_number': controller[2].text,
           }
       );
-
+      // 이미지 변경
+      var response2;
+      if(isChangeImage){
+        FormData formData = FormData.fromMap({
+          'file' : await MultipartFile.fromFile(newImage!.path, contentType: MediaType('image', newImage!.path.split('/').last.split('.').last))
+        });
+        dio.options.headers['Content-Type'] = 'multipart/form-data';
+        response2 = await dio.put('/user/'+id+'/image-info', data: formData);
+      }
       if(response.statusCode == 200){
-        Fluttertoast.showToast(msg: '정상적으로 변경이 완료되었습니다.');
-        Navigator.pop(context);
+        if(response2 != null || isChangeImage == false) {
+          Fluttertoast.showToast(msg: '정상적으로 변경이 완료되었습니다.');
+          Navigator.pop(context);
+        }
       }
 
     }catch(err){
       print(err);
     }
 
+  }
+
+  changeImage()async{
+    isChangeImage = true;
+    newImage = await ImagePicker().pickImage(source: ImageSource.gallery);
+    setState(() {
+
+    });
   }
 }
