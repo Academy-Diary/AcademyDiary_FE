@@ -42,6 +42,8 @@ dependencies:
   dio: ^4.0.6 # http를 사용
   fluttertoast: ^8.2.8 # toast메세지 사용
   path_provider: ^2.1.4
+  image_picker: ^1.1.2
+  http_parser: ^4.0.2
   
 
 dev_dependencies:
