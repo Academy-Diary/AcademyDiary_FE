@@ -289,7 +289,10 @@ class _SignupPageState extends State<SignupPage> {
                           validator: (value){
                             if(value!.isEmpty){
                               return "전화번호를 입력하세요";
-                            }else return null;
+                            }else if(!RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$').hasMatch(value.toString())){
+                              // 전화번호 형식이 알맞게 입력됐는지 확인
+                              return "올바른 형식의 휴대폰번호를 입력하세요";
+                            }else return null;;
                           },
                           decoration: const InputDecoration(
                             hintText: "전화번호",
