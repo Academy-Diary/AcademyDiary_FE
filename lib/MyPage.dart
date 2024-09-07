@@ -1,9 +1,14 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:academy_manager/AppBar.dart';  // AppBar.dart 파일에서 MyAppBar를 import
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/MemberInfoEdit.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';  // MemberInfoEdit.dart 파일 import
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';  // MemberInfoEdit.dart 파일 import
 
 class MyPage extends StatefulWidget {
   MyPage({super.key});
@@ -20,6 +25,10 @@ class _MyPageState extends State<MyPage> {
   String? refreshToken;
 
   String? name="", id="", email="", phone="";
+
+  File? file;
+
+  var response, dir;
   @override
   void initState() {
     // TODO: implement initState
@@ -46,13 +55,19 @@ class _MyPageState extends State<MyPage> {
     dio.options.headers['cookie'] = refreshToken;
     id = await storage.read(key: 'id');
 
-    var response = await dio.get('/user/'+id.toString()+'/basic-info');
+    response = await dio.get('/user/'+id.toString()+'/basic-info');
+    dir = await getApplicationDocumentsDirectory();
+    await dio.download('/user/'+id.toString()+'/image-info', '${dir.path}/profile.png');
+
     setState(() {
+      file = File('${dir.path}/profile.png');
+
       name = response.data['user_name'];
       id = id;
       email = response.data['email'];
       phone = response.data['phone_number'];
     });
+
   }
 
   @override
@@ -67,6 +82,7 @@ class _MyPageState extends State<MyPage> {
           children: [
             Center(
               child: CircleAvatar(
+                backgroundImage: (file != null)? FileImage(file!): AssetImage('img/default.png'),
                 radius: 60.r,
                 backgroundColor: Colors.grey[300],
               ),
@@ -101,7 +117,7 @@ class _MyPageState extends State<MyPage> {
                 // MemberInfoEdit 화면으로 이동
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MemberInfoEdit()),
+                  MaterialPageRoute(builder: (context) => MemberInfoEdit(name: name.toString(), email: email.toString(), phone: phone.toString(), id: id.toString(),image: FileImage(file!),)),
                 );
               },
               child: Text('회원정보 수정', style: TextStyle(color: Colors.white, fontSize: 16.sp)),

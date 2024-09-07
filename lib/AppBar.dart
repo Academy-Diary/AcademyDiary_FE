@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:academy_manager/MyPage.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -30,7 +31,7 @@ class MyAppBar extends StatelessWidget{
         IconButton(
           icon: Icon(Icons.search),
           onPressed: () {
-            Navigator.push(context, MaterialPageRoute(builder: (builder)=> MyPage()));
+            Navigator.push(context, CupertinoPageRoute(builder: (builder)=> MyPage()));
           },
         ),
       ],
