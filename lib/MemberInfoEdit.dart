@@ -3,16 +3,21 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/AppBar.dart';
 
 class MemberInfoEdit extends StatelessWidget {
+  String name, email, phone, id;
+  FileImage image;
+  MemberInfoEdit({super.key, required this.name, required this.email, required this.phone, required this.id, required this.image});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
+      drawer: MenuDrawer(name: name, email: email, subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.all(16.w),
         child: Column(
           children: [
             CircleAvatar(
+              backgroundImage: image,
               radius: 50.r,
               backgroundColor: Colors.grey[300],
             ),
@@ -27,7 +32,7 @@ class MemberInfoEdit extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("name: 현우진", style: TextStyle(fontSize: 16.sp)),
+                  Text("name: "+name, style: TextStyle(fontSize: 16.sp)),
                   SizedBox(height: 10.h),
                   TextFormField(
                     decoration: InputDecoration(labelText: 'password'),
@@ -41,12 +46,12 @@ class MemberInfoEdit extends StatelessWidget {
                   SizedBox(height: 10.h),
                   TextFormField(
                     decoration: InputDecoration(labelText: 'Email'),
-                    initialValue: 'example1@gmail.com',
+                    initialValue: email,
                   ),
                   SizedBox(height: 10.h),
                   TextFormField(
                     decoration: InputDecoration(labelText: 'phone'),
-                    initialValue: '010-0000-0000',
+                    initialValue: phone,
                   ),
                 ],
               ),
