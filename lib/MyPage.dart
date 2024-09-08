@@ -55,17 +55,22 @@ class _MyPageState extends State<MyPage> {
     dio.options.headers['cookie'] = refreshToken;
     id = await storage.read(key: 'id');
     dir = await getApplicationDocumentsDirectory(); // application 저장소 접근
+    var path = dir.path+'/'+id.toString();
     // 기존에 있던 이미지 파일 삭제
     try{
-      File(dir.path+'/'+id.toString()).delete();
+      var tmp = File(dir.path+'/'+id.toString());
+      await tmp.delete(); // 기존에 있던 파일 삭제
+      file = null;
     }catch(err){print(err);}
 
     response = await dio.get('/user/'+id.toString()+'/basic-info');
 
-    await dio.download('/user/'+id.toString()+'/image-info', '${dir.path}/${response.data['image'].split('.')[0]}');
+    await dio.download('/user/'+id.toString()+'/image-info', path);
+    file = File(path);
 
     setState(() {
-      file = File('${dir.path}/${response.data['image'].split('.')[0]}');
+      file = null;
+      file = File(path);
 
       name = response.data['user_name'];
       id = id;
@@ -118,14 +123,17 @@ class _MyPageState extends State<MyPage> {
                 padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 36.w),
                 backgroundColor: Color(0xFF565D6D),
               ),
-              onPressed: () {
+              onPressed: () async {
                 // MemberInfoEdit 화면으로 이동
-                Navigator.push(
+                bool refresh = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MemberInfoEdit(name: name.toString(), email: email.toString(), phone: phone.toString(), id: id.toString(),image: FileImage(file!))),
-                ).then((value) => setState(() {
+                );
+                if(refresh){
                   _asyncMethod();
-                }));
+                  print(true);
+                }
+
               },
               child: Text('회원정보 수정', style: TextStyle(color: Colors.white, fontSize: 16.sp)),
             ),
