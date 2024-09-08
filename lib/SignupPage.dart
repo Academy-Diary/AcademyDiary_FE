@@ -402,7 +402,6 @@ class _SignupPageState extends State<SignupPage> {
                                     "phone_number": values[4],
                                     "birth_date": values[5] + "T00:00:00Z",
                                     "role": "STUDENT",
-                                    "academy_id": ""
                                   });
                               if (response.statusCode == 201) {
                                 // 회원가입 성공
