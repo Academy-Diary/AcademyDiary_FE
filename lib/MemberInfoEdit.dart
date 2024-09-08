@@ -5,6 +5,7 @@ import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/AppBar.dart';
+import 'package:academy_manager/main.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http_parser/http_parser.dart';
@@ -32,13 +33,14 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
   List<TextEditingController> controller = [];
   final _globalKey = GlobalKey<FormState>();
 
-  _MemberInfoEditState({required this.name, required this.email, required this.phone, required this.id, required this.image});
+  _MemberInfoEditState(
+      {required this.name, required this.email, required this.phone, required this.id, required this.image});
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    for(int i = 0; i<3; i++)
+    for (int i = 0; i < 3; i++)
       controller.add(new TextEditingController());
 
     dio = new Dio();
@@ -50,27 +52,26 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
     {'Content-Type': 'application/json'};
     dio.interceptors.add(
         InterceptorsWrapper(
-            onError: (DioError error, ErrorInterceptorHandler handler){
+            onError: (DioError error, ErrorInterceptorHandler handler) {
               Fluttertoast.showToast(msg: error.response?.data["message"]);
               return handler.next(error);
             }
         )
     );
 
-    WidgetsBinding.instance.addPostFrameCallback((_){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _asyncMethod();
     });
 
     controller[1].text = email;
     controller[2].text = phone;
-
   }
 
-  _asyncMethod() async{
+  _asyncMethod() async {
     accessToken = await storage.read(key: 'accessToken');
     refreshToken = await storage.read(key: 'refreshToken');
 
-    dio.options.headers['Authorization'] = 'Bear '+accessToken.toString();
+    dio.options.headers['Authorization'] = 'Bear ' + accessToken.toString();
   }
 
   @override
@@ -83,13 +84,14 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
         child: Column(
           children: [
             CircleAvatar(
-              backgroundImage: newImage==null? image: FileImage(File(newImage!.path)),
+              backgroundImage: newImage == null ? image : FileImage(
+                  File(newImage!.path)),
               radius: 50.r,
               backgroundColor: Colors.grey[300],
             ),
             SizedBox(height: 8.h),
             TextButton(
-                onPressed: (){
+                onPressed: () {
                   changeImage();
                 },
                 child: Text('사진 편집', style: TextStyle(fontSize: 14.sp))),
@@ -104,7 +106,7 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("name: "+name, style: TextStyle(fontSize: 16.sp)),
+                    Text("name: " + name, style: TextStyle(fontSize: 16.sp)),
                     SizedBox(height: 10.h),
                     TextFormField(
                       controller: controller[0],
@@ -113,33 +115,43 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
                     ),
                     SizedBox(height: 10.h),
                     TextFormField(
-                      validator: (value){
-                        if(value != controller[0].text){
+                      validator: (value) {
+                        if (value != controller[0].text) {
                           return "두 비밀번호가 다릅니다.";
-                        }else return null;
+                        } else
+                          return null;
                       },
                       decoration: InputDecoration(labelText: 'password 확인'),
                       obscureText: true,
                     ),
                     SizedBox(height: 10.h),
                     TextFormField(
-                      validator: (value){
-                        if(value.toString().isEmpty) return "email을 입력하세요";
-                        else if(!EmailValidator.validate(value.toString())){
+                      validator: (value) {
+                        if (value
+                            .toString()
+                            .isEmpty)
+                          return "email을 입력하세요";
+                        else if (!EmailValidator.validate(value.toString())) {
                           return "올바른 형식의 email을 입력하세요";
-                        }else return null;
+                        } else
+                          return null;
                       },
                       controller: controller[1],
                       decoration: InputDecoration(labelText: 'Email'),
                     ),
                     SizedBox(height: 10.h),
                     TextFormField(
-                      validator: (value){
-                        if(value.toString().isEmpty) return "전화번호를 입력하세요";
-                        else if(!RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$').hasMatch(value.toString())){
+                      validator: (value) {
+                        if (value
+                            .toString()
+                            .isEmpty)
+                          return "전화번호를 입력하세요";
+                        else if (!RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$')
+                            .hasMatch(value.toString())) {
                           // 전화번호 형식이 알맞게 입력됐는지 확인
                           return "올바른 형식의 휴대폰번호를 입력하세요";
-                        }else return null;
+                        } else
+                          return null;
                       },
                       controller: controller[2],
                       decoration: InputDecoration(labelText: 'phone'),
@@ -149,25 +161,35 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
               ),
             ),
             Spacer(),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w),
-                backgroundColor: Color(0xFF565D6D),
-              ),
-              onPressed: () {
-                if(_globalKey.currentState!.validate()){
-                   submit();
-                }
-
-              },
-              child: Text('저장', style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 12.h, horizontal: 24.w),
+                    backgroundColor: Color(0xFF565D6D),
+                  ),
+                  onPressed: () {
+                    if (_globalKey.currentState!.validate()) {
+                      submit();
+                    }
+                  },
+                  child: Text('저장',
+                      style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+                ),
+                TextButton(onPressed: () {
+                  delete();
+                }, child: Text('탈퇴하기', style: TextStyle(fontSize: 10.sp),))
+              ],
             ),
           ],
         ),
       ),
     );
   }
-  submit() async{
+
+  submit() async {
     try {
       // 기본정보 변경
       var response = await dio.put('/user/' + id + '/basic-info',
@@ -179,27 +201,46 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
       );
       // 이미지 변경
       var response2;
-      if(isChangeImage){
+      if (isChangeImage) {
         FormData formData = FormData.fromMap({
-          'file' : await MultipartFile.fromFile(newImage!.path, contentType: MediaType('image', newImage!.path.split('/').last.split('.').last))
+          'file': await MultipartFile.fromFile(
+              newImage!.path, contentType: MediaType('image', newImage!
+              .path
+              .split('/')
+              .last
+              .split('.')
+              .last))
         });
         dio.options.headers['Content-Type'] = 'multipart/form-data';
-        response2 = await dio.put('/user/'+id+'/image-info', data: formData);
+        response2 =
+        await dio.put('/user/' + id + '/image-info', data: formData);
       }
-      if(response.statusCode == 200){
-        if(response2 != null || isChangeImage == false) {
+      if (response.statusCode == 200) {
+        if (response2 != null || isChangeImage == false) {
           Fluttertoast.showToast(msg: '정상적으로 변경이 완료되었습니다.');
-          Navigator.pop(context);
+          Navigator.pop(context, true);
         }
       }
-
-    }catch(err){
+    } catch (err) {
       print(err);
     }
-
   }
 
-  changeImage()async{
+  delete() async {
+    dio.options.headers['Content-Type'] = 'application/json';
+    try {
+      var response = await dio.delete('/user/'+id.toString());
+      if(response.statusCode == 200){
+        Fluttertoast.showToast(msg: "정상탈퇴 되었습니다.");
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>MyApp()), (route)=>false);
+      }
+    } catch (err) {
+      print(err);
+      Navigator.pop(context);
+    }
+  }
+
+  changeImage() async {
     isChangeImage = true;
     newImage = await ImagePicker().pickImage(source: ImageSource.gallery);
     setState(() {
