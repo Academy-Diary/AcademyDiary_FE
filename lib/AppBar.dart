@@ -257,7 +257,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 await storage.delete(key: "login"); // secure storage에 저장된 아이디,패스워드 값 지우기
                 await storage.delete(key: 'accessToken');
                 await storage.delete(key: 'refreshToken');
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MyApp()));
+                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>MyApp()), (route) => false);
               }catch(err){
 
               }
