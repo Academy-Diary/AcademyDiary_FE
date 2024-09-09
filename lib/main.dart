@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'AfterLogin.dart';  // AfterLogin.dart 파일을 import
+import 'package:academy_manager/MyPage.dart';
 import 'package:academy_manager/AfterSignup.dart';
 import 'package:academy_manager/LoginPage.dart';
 import 'package:academy_manager/SignupPage.dart';
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
         routes: {
           "/login": (context) => const LoginPage(),
           "/signin": (context) => const SignupPage(),
+          "/myPage" : (context) => MyPage(), // MyPage의 Route
         },
       ),
     );
@@ -59,7 +61,7 @@ class _MainPageState extends State<MainPage> {
 
     dio = new Dio();
     dio.options.baseUrl =
-    'http://192.168.0.118:8000'; //개발 중 백엔드 서버는 본인이 돌림.
+    'http://10.224.121.247:8000'; //개발 중 백엔드 서버는 본인이 돌림.
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
     dio.options.headers =

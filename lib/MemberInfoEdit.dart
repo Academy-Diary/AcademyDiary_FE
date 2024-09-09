@@ -45,7 +45,7 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
 
     dio = new Dio();
     dio.options.baseUrl =
-    'http://192.168.0.118:8000';
+    'http://10.224.121.247:8000';
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
     dio.options.headers =
@@ -218,7 +218,11 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
       if (response.statusCode == 200) {
         if (response2 != null || isChangeImage == false) {
           Fluttertoast.showToast(msg: '정상적으로 변경이 완료되었습니다.');
-          Navigator.pop(context, true);
+          Navigator.pop(context, {
+            'refresh': true,
+            if(isChangeImage)
+              'profile' : File(newImage!.path)
+          });
         }
       }
     } catch (err) {

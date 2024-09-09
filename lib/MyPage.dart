@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:academy_manager/AfterLogin.dart';
 import 'package:academy_manager/AppBar.dart';  // AppBar.dart 파일에서 MyAppBar를 import
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
@@ -28,6 +29,8 @@ class _MyPageState extends State<MyPage> {
 
   File? file;
 
+  var path; // 이미지 저장하는 위치
+
   var response, dir;
   @override
   void initState() {
@@ -35,7 +38,7 @@ class _MyPageState extends State<MyPage> {
     super.initState();
     dio = new Dio();
     dio.options.baseUrl =
-    'http://192.168.0.118:8000'; //개발 중 백엔드 서버는 본인이 돌림.
+    'http://10.224.121.247:8000'; //개발 중 백엔드 서버는 본인이 돌림.
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
     dio.options.headers =
@@ -47,6 +50,8 @@ class _MyPageState extends State<MyPage> {
 
   }
 
+
+
   _asyncMethod() async{
     accessToken = await storage.read(key: 'accessToken');
     refreshToken = await storage.read(key: 'refreshToken');
@@ -55,20 +60,22 @@ class _MyPageState extends State<MyPage> {
     dio.options.headers['cookie'] = refreshToken;
     id = await storage.read(key: 'id');
     dir = await getApplicationDocumentsDirectory(); // application 저장소 접근
-    var path = dir.path+'/'+id.toString();
     // 기존에 있던 이미지 파일 삭제
     try{
-      var tmp = File(dir.path+'/'+id.toString());
-      await tmp.delete(); // 기존에 있던 파일 삭제
+      File(path);
+      await File(file!.path).delete(); // 기존에 있던 파일 삭제
       file = null;
     }catch(err){print(err);}
 
+    path = dir.path+'/'+id.toString()+DateTime.now().toString(); // 시간대별로 새로운 이미지 이름을 만들어 저장
+
     response = await dio.get('/user/'+id.toString()+'/basic-info');
 
-    await dio.download('/user/'+id.toString()+'/image-info', path);
+    var tmp = await dio.download('/user/'+id.toString()+'/image-info', path);
     file = File(path);
 
     setState(() {
+      print("start setState");
       file = null;
       file = File(path);
 
@@ -76,6 +83,7 @@ class _MyPageState extends State<MyPage> {
       id = id;
       email = response.data['email'];
       phone = response.data['phone_number'];
+      print("end setState");
     });
 
   }
@@ -92,7 +100,7 @@ class _MyPageState extends State<MyPage> {
           children: [
             Center(
               child: CircleAvatar(
-                backgroundImage: (file != null)? FileImage(file!): AssetImage('img/default.png'),
+                foregroundImage: (file != null)? FileImage(file!): AssetImage('img/default.png'),
                 radius: 60.r,
                 backgroundColor: Colors.grey[300],
               ),
@@ -125,12 +133,15 @@ class _MyPageState extends State<MyPage> {
               ),
               onPressed: () async {
                 // MemberInfoEdit 화면으로 이동
-                bool refresh = await Navigator.push(
+                var refresh = await Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => MemberInfoEdit(name: name.toString(), email: email.toString(), phone: phone.toString(), id: id.toString(),image: FileImage(file!))),
                 );
-                if(refresh){
-                  _asyncMethod();
+                if(refresh['refresh']){
+                  /*setState(() {
+                    file = File(refresh['profile'].path);
+                  });*/
+                  Navigator.popAndPushNamed(context, "/myPage");
                   print(true);
                 }
 
