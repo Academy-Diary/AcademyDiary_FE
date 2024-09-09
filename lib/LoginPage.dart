@@ -51,7 +51,7 @@ class _LoginpageState extends State<LoginPage> {
         )
     ); // StatusCode가 400일 때 서버에서 리턴하는 "message"를 toastMessage로 출력
     dio.options.baseUrl =
-    'http://192.168.0.118:8000'; //개발 중 백엔드 서버는 본인이 돌림.
+    'http://192.168.199.185:8000'; //개발 중 백엔드 서버는 본인이 돌림.
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
     dio.options.headers =

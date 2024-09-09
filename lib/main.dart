@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           useMaterial3: false,
         ),
-        home: AfterLoginPage(), // 앱 시작 시 MainPage를 표시
+        home: MainPage(), // 앱 시작 시 MainPage를 표시
         routes: {
           "/login": (context) => const LoginPage(),
           "/signin": (context) => const SignupPage(),
@@ -58,7 +58,7 @@ class _MainPageState extends State<MainPage> {
 
     dio = new Dio();
     dio.options.baseUrl =
-    'http://192.168.0.118:8000'; //개발 중 백엔드 서버는 본인이 돌림.
+    'http://192.168.199.185:8000'; //개발 중 백엔드 서버는 본인이 돌림.
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
     dio.options.headers =
