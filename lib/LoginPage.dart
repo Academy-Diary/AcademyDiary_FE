@@ -1,4 +1,5 @@
 import 'package:academy_manager/AfterLogin.dart';
+import 'package:academy_manager/AfterSignup.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -158,6 +159,13 @@ class _LoginpageState extends State<LoginPage> {
                         );
                       }
                       else {
+                        Fluttertoast.showToast(
+                          msg: "로그인중...",
+                          backgroundColor: Colors.grey,
+                          fontSize: 16,
+                          timeInSecForIosWeb: 1,
+                          gravity: ToastGravity.BOTTOM,
+                        );
                         // id, pw를 서버에 보내 맞는 정보인지 확인.
                         var response;
                         try {
@@ -174,19 +182,21 @@ class _LoginpageState extends State<LoginPage> {
                           storage.delete(key: 'refreshToken');
                           storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
 
-                          Fluttertoast.showToast(
-                              msg: "로그인중...",
-                            backgroundColor: Colors.grey,
-                            fontSize: 16,
-                            timeInSecForIosWeb: 1,
-                            gravity: ToastGravity.BOTTOM,
-                          );
-
-                          Navigator.pushReplacement(context,
-                            MaterialPageRoute(
-                                builder: (context)=> AfterLoginPage(),
-                              ),
-                          );
+                          if(response.data['userStatus'] != null) {
+                            if (response.data['userStatus']['status'] == "ACTIVE")
+                              Navigator.pushReplacement(context,
+                                MaterialPageRoute(
+                                  builder: (context) => AfterLoginPage(),
+                                ),
+                              );
+                          }
+                          else{
+                            //var response = dio.get('/user/{user_id}'); //TODO: 백엔드 개발중
+                            Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => AfterSignUp(name: "Minsoo Kim", role: 1, isKey: false)) // name과 role은 백엔드에서 개발이 완료되면 추가 예정
+                            );
+                          }
                         } catch (err) {
 
                         }
