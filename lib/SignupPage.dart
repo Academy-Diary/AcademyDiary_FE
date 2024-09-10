@@ -50,7 +50,7 @@ class _SignupPageState extends State<SignupPage> {
     for (int i = 0; i < 7; i++) controllers.add(TextEditingController());
 
     dio = Dio();
-    dio.options.baseUrl = 'http://192.168.199.185:8000';
+    dio.options.baseUrl = 'http://192.168.200.139:8000';
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
     dio.options.headers = {'Content-Type': 'application/json'};

@@ -2,7 +2,6 @@ import 'package:academy_manager/AfterLogin.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'package:dio/dio.dart'; // DIO 패키지로 http 통신
 import 'dart:convert'; // Json encode, Decode를 위한 패키지
 import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // 로그인 정보 저장하는 저장소에 사용될 패키지
@@ -21,7 +20,6 @@ class _LoginpageState extends State<LoginPage> {
   TextEditingController _pwController = TextEditingController();
   String? userInfo; //user 정보 저장을 위한 변수
 
-
   // 자동로그인 체크 여부 저장 변수
   bool isAutoLogin = false;
 
@@ -29,16 +27,15 @@ class _LoginpageState extends State<LoginPage> {
   final _pwFocusNode = FocusNode();
 
   //Secure Storage 접근을 위한 변수 초기화
-  static final storage = new FlutterSecureStorage();
+  static final storage = FlutterSecureStorage();
 
   var dio;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
 
-    dio = new Dio();
+    dio = Dio();
     dio.interceptors.add(
         InterceptorsWrapper(
           onError: (DioError error, ErrorInterceptorHandler handler) {
@@ -49,13 +46,11 @@ class _LoginpageState extends State<LoginPage> {
             return handler.next(error);
           },
         )
-    ); // StatusCode가 400일 때 서버에서 리턴하는 "message"를 toastMessage로 출력
-    dio.options.baseUrl =
-    'http://192.168.199.185:8000'; //개발 중 백엔드 서버는 본인이 돌림.
+    );
+    dio.options.baseUrl = 'http://192.168.200.139:8000'; // 개발 중 백엔드 서버 주소
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
-    dio.options.headers =
-    {'Content-Type': 'application/json'};
+    dio.options.headers = {'Content-Type': 'application/json'};
   }
 
   @override
@@ -66,12 +61,12 @@ class _LoginpageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: backColor,
       body: SafeArea(
-        //minimum: EdgeInsets.fromLTRB(30.w, 20.h, 30.w, 0.w),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Log in",
+              Text(
+                "Log in",
                 style: TextStyle(
                   fontSize: 40.0.sp,
                 ),
@@ -85,11 +80,10 @@ class _LoginpageState extends State<LoginPage> {
                   autofocus: true,
                   style: TextStyle(fontSize: 18),
                   decoration: InputDecoration(
-                    //labelText: "ID",
-                    hintText: "ID",
-                    hintStyle:TextStyle(fontSize: 18)
+                      hintText: "ID",
+                      hintStyle: TextStyle(fontSize: 18)
                   ),
-                  onSubmitted: (_){
+                  onSubmitted: (_) {
                     FocusScope.of(context).requestFocus(_pwFocusNode);
                   },
                 ),
@@ -103,8 +97,8 @@ class _LoginpageState extends State<LoginPage> {
                   controller: _pwController,
                   style: TextStyle(fontSize: 18),
                   decoration: InputDecoration(
-                    hintText: "Password",
-                    hintStyle:TextStyle(fontSize: 18)
+                      hintText: "Password",
+                      hintStyle: TextStyle(fontSize: 18)
                   ),
                   obscureText: true,
                 ),
@@ -117,16 +111,16 @@ class _LoginpageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     Checkbox(
-                        value: isAutoLogin,
-                        onChanged: (bool? value){
-                          setState(() {
-                            isAutoLogin = value!;
-                          });
-                          print(isAutoLogin);
-                        },
-
+                      value: isAutoLogin,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          isAutoLogin = value!;
+                        });
+                        print(isAutoLogin);
+                      },
                     ),
-                    Text("자동로그인",
+                    Text(
+                      "자동로그인",
                       style: TextStyle(
                         fontSize: 20.0,
                       ),
@@ -139,65 +133,72 @@ class _LoginpageState extends State<LoginPage> {
                 width: 342.0.w,
                 height: 63.0.h,
                 child: ElevatedButton(
-                    onPressed: () async {
-                      String id = _idController.text;
-                      String pw = _pwController.text;
-                      if(id.isEmpty){
-                        Fluttertoast.showToast(
-                          msg: "id를 입력해주세요!",
-                          backgroundColor: Colors.grey,
-                          fontSize: 16.0,
-                          textColor: Colors.white,
+                  onPressed: () async {
+                    String id = _idController.text;
+                    String pw = _pwController.text;
+                    if (id.isEmpty) {
+                      Fluttertoast.showToast(
+                        msg: "id를 입력해주세요!",
+                        backgroundColor: Colors.grey,
+                        fontSize: 16.0,
+                        textColor: Colors.white,
+                      );
+                    } else if (pw.isEmpty) {
+                      Fluttertoast.showToast(
+                        msg: "pw를 입력해주세요",
+                        backgroundColor: Colors.grey,
+                        fontSize: 16.0,
+                        textColor: Colors.white,
+                      );
+                    } else {
+                      try {
+                        var response = await dio.post(
+                          '/user/login',
+                          data: {"user_id": id, "password": pw},
                         );
-                      }else if(pw.isEmpty) {
-                        Fluttertoast.showToast(
-                          msg: "pw를 입력해주세요",
-                          backgroundColor: Colors.grey,
-                          fontSize: 16.0,
-                          textColor: Colors.white,
-                        );
-                      }
-                      else {
-                        // id, pw를 서버에 보내 맞는 정보인지 확인.
-                        var response;
-                        try {
-                          response = await dio.post('/user/login',
-                              data: {"user_id": id, "password": pw});
-                          if(isAutoLogin){
-                            await storage.write(
-                                key: "login",
-                                value: "useer_id $id password $pw"
-                            );
-                          }
-                          storage.delete(key: 'accessToken');
-                          storage.write(key: 'accessToken', value: response.data['accessToken']);
-                          storage.delete(key: 'refreshToken');
-                          storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
-
-                          Fluttertoast.showToast(
-                              msg: "로그인중...",
-                            backgroundColor: Colors.grey,
-                            fontSize: 16,
-                            timeInSecForIosWeb: 1,
-                            gravity: ToastGravity.BOTTOM,
+                        if (isAutoLogin) {
+                          await storage.write(
+                            key: "login",
+                            value: "user_id $id password $pw",
                           );
-
-                          Navigator.pushReplacement(context,
-                            MaterialPageRoute(
-                                builder: (context)=> AfterLoginPage(),
-                              ),
-                          );
-                        } catch (err) {
-
                         }
+                        await storage.delete(key: 'accessToken');
+                        await storage.write(
+                          key: 'accessToken',
+                          value: response.data['accessToken'],
+                        );
+                        await storage.delete(key: 'refreshToken');
+                        await storage.write(
+                          key: "refreshToken",
+                          value: response.headers['set-cookie'][0],
+                        );
+
+                        Fluttertoast.showToast(
+                          msg: "로그인중...",
+                          backgroundColor: Colors.grey,
+                          fontSize: 16,
+                          timeInSecForIosWeb: 1,
+                          gravity: ToastGravity.BOTTOM,
+                        );
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => AfterLoginPage(),
+                          ),
+                        );
+                      } catch (err) {
+                        // 오류 처리 필요
                       }
-                    },
-                    child: Text("로그인",
+                    }
+                  },
+                  child: Text(
+                    "로그인",
                     style: TextStyle(
-                        fontSize: 24,
-                        color: Colors.white,
-                      ),
+                      fontSize: 24,
+                      color: Colors.white,
                     ),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: mainColor,
                   ),
@@ -209,28 +210,34 @@ class _LoginpageState extends State<LoginPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton(
-                      onPressed: (){
-                        // ID찾기 페이지 이동
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => FindIdPage(),
+                          ),
+                        );
                       },
-                      child: Text("ID 찾기",
+                      child: Text(
+                        "ID 찾기",
                         style: TextStyle(
                           fontSize: 24.0,
-                          color: Color(0xff6A6666)
+                          color: Color(0xff6A6666),
                         ),
-                      )
+                      ),
                     ),
-
                     TextButton(
-                        onPressed: (){
-                          // 비밀번호 찾기 페이지 이동
-                        },
-                        child: Text("비밀번호 찾기",
-                          style: TextStyle(
-                              fontSize: 24.0,
-                              color: Color(0xff6A6666)
-                          ),
-                        )
-                    )
+                      onPressed: () {
+                        // 비밀번호 찾기 페이지 이동
+                      },
+                      child: Text(
+                        "비밀번호 찾기",
+                        style: TextStyle(
+                          fontSize: 24.0,
+                          color: Color(0xff6A6666),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -242,3 +249,111 @@ class _LoginpageState extends State<LoginPage> {
   }
 }
 
+class FindIdPage extends StatefulWidget {
+  @override
+  _FindIdPageState createState() => _FindIdPageState();
+}
+
+class _FindIdPageState extends State<FindIdPage> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final Dio dio = Dio();
+
+  @override
+  void initState() {
+    super.initState();
+    dio.options.baseUrl = 'http://192.168.200.139:8000'; // 백엔드 서버 주소
+    dio.options.connectTimeout = 5000;
+    dio.options.receiveTimeout = 3000;
+    dio.options.headers = {
+      'Content-Type': 'application/json',
+    };
+  }
+
+  Future<void> _findId() async {
+    String email = _emailController.text;
+    String phoneNumber = _phoneController.text;
+
+    if (email.isEmpty || phoneNumber.isEmpty) {
+      Fluttertoast.showToast(msg: "email과 phone_number를 입력해주세요.");
+      return;
+    }
+
+    try {
+      Response response = await dio.post(
+        '/user/find-id',
+        data: {
+          'email': email,
+          'phone_number': phoneNumber,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        String userId = response.data['user_id'];
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FindIdResultPage(userId: userId),
+          ),
+        );
+      }
+    } on DioError catch (error) {
+      if (error.response?.statusCode == 400) {
+        Fluttertoast.showToast(msg: error.response?.data['message']);
+      } else if (error.response?.statusCode == 404) {
+        Fluttertoast.showToast(msg: "해당하는 유저가 존재하지 않습니다.");
+      } else if (error.response?.statusCode == 500) {
+        Fluttertoast.showToast(msg: "서버에 오류가 발생했습니다. 다시 시도해주세요.");
+      } else {
+        Fluttertoast.showToast(msg: "예상치 못한 오류가 발생했습니다.");
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('아이디 찾기')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(labelText: '이메일 입력'),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _phoneController,
+              decoration: InputDecoration(labelText: '휴대폰 번호 입력'),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _findId,
+              child: Text('아이디 찾기'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class FindIdResultPage extends StatelessWidget {
+  final String userId;
+
+  FindIdResultPage({required this.userId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('아이디 찾기 결과')),
+      body: Center(
+        child: Text(
+          '내 아이디: $userId',
+          style: TextStyle(fontSize: 24),
+        ),
+      ),
+    );
+  }
+}
