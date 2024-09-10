@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:academy_manager/MyDio.dart';
 import 'package:dio/dio.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
@@ -43,21 +44,7 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
     for (int i = 0; i < 3; i++)
       controller.add(new TextEditingController());
 
-    dio = new Dio();
-    dio.options.baseUrl =
-    'http://10.224.121.247:8000';
-    dio.options.connectTimeout = 5000; // 5s
-    dio.options.receiveTimeout = 3000;
-    dio.options.headers =
-    {'Content-Type': 'application/json'};
-    dio.interceptors.add(
-        InterceptorsWrapper(
-            onError: (DioError error, ErrorInterceptorHandler handler) {
-              Fluttertoast.showToast(msg: error.response?.data["message"]);
-              return handler.next(error);
-            }
-        )
-    );
+    dio = new MyDio();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _asyncMethod();
@@ -71,11 +58,12 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
     accessToken = await storage.read(key: 'accessToken');
     refreshToken = await storage.read(key: 'refreshToken');
 
-    dio.options.headers['Authorization'] = 'Bear ' + accessToken.toString();
+    dio.addResponseInterceptor('Authorization', 'Bear ' + accessToken.toString());
   }
 
   @override
   Widget build(BuildContext context) {
+    dio.addErrorInterceptor(context);
     return Scaffold(
       appBar: MyAppBar().build(context),
       drawer: MenuDrawer(name: name, email: email, subjects: ['수학']),
@@ -211,13 +199,22 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
               .split('.')
               .last))
         });
-        dio.options.headers['Content-Type'] = 'multipart/form-data';
+        dio.addResponseInterceptor('Content-Type', 'multipart/form-data');
         response2 =
         await dio.put('/user/' + id + '/image-info', data: formData);
       }
       if (response.statusCode == 200) {
         if (response2 != null || isChangeImage == false) {
-          Fluttertoast.showToast(msg: '정상적으로 변경이 완료되었습니다.');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content: Text(
+                    "정상적으로 변경이 완료되었습니다.",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 18.sp),
+                ),
+              duration: Duration(seconds: 1),
+            )
+          );
           Navigator.pop(context, {
             'refresh': true,
             if(isChangeImage)
@@ -231,7 +228,7 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
   }
 
   delete() async {
-    dio.options.headers['Content-Type'] = 'application/json';
+    dio.addResponseInterceptor('Content-Type', 'application/json');
     try {
       var response = await dio.delete('/user/'+id.toString());
       if(response.statusCode == 200){

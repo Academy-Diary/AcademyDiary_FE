@@ -1,11 +1,11 @@
 import 'package:academy_manager/AfterLogin.dart';
 import 'package:academy_manager/AfterSignup.dart';
+import 'package:academy_manager/MyDio.dart'; // dio패키지 파일분리
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'package:dio/dio.dart'; // DIO 패키지로 http 통신
-import 'dart:convert'; // Json encode, Decode를 위한 패키지
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // 로그인 정보 저장하는 저장소에 사용될 패키지
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -39,35 +39,18 @@ class _LoginpageState extends State<LoginPage> {
     // TODO: implement initState
     super.initState();
 
-    dio = new Dio();
-    dio.interceptors.add(
-        InterceptorsWrapper(
-          onError: (DioError error, ErrorInterceptorHandler handler) {
-            if (error.response?.statusCode == 400) {
-              Map<String, dynamic> res = jsonDecode(error.response.toString());
-              Fluttertoast.showToast(msg: res["message"]);
-            }
-            return handler.next(error);
-          },
-        )
-    ); // StatusCode가 400일 때 서버에서 리턴하는 "message"를 toastMessage로 출력
-    dio.options.baseUrl =
-    'http://192.168.0.118:8000'; //개발 중 백엔드 서버는 본인이 돌림.
-    dio.options.connectTimeout = 5000; // 5s
-    dio.options.receiveTimeout = 3000;
-    dio.options.headers =
-    {'Content-Type': 'application/json'};
+    dio = new MyDio();
   }
 
   @override
   Widget build(BuildContext context) {
     const mainColor = Color(0xff565D6D);
     const backColor = Color(0xffD9D9D9);
+    dio.addErrorInterceptor(context); // errorInterceptor 설정
 
     return Scaffold(
       backgroundColor: backColor,
       body: SafeArea(
-        //minimum: EdgeInsets.fromLTRB(30.w, 20.h, 30.w, 0.w),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -159,13 +142,14 @@ class _LoginpageState extends State<LoginPage> {
                         );
                       }
                       else {
-                        Fluttertoast.showToast(
-                          msg: "로그인중...",
-                          backgroundColor: Colors.grey,
-                          fontSize: 16,
-                          timeInSecForIosWeb: 1,
-                          gravity: ToastGravity.BOTTOM,
-                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  "로그인중...",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              duration: Duration(seconds: 1),));
                         // id, pw를 서버에 보내 맞는 정보인지 확인.
                         var response;
                         try {
@@ -207,8 +191,8 @@ class _LoginpageState extends State<LoginPage> {
                               ),
                             );
                           }
-                        } catch (err) {
-
+                        } catch (err){
+                          print(err);
                         }
                       }
                     },
@@ -256,7 +240,7 @@ class _LoginpageState extends State<LoginPage> {
               ),
             ],
           ),
-        ),
+        )
       ),
     );
   }

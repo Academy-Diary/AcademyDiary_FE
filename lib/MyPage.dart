@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/MemberInfoEdit.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:path_provider/path_provider.dart';  // MemberInfoEdit.dart 파일 import
+import 'package:path_provider/path_provider.dart';
+import 'package:academy_manager/MyDio.dart';
 
 class MyPage extends StatefulWidget {
   MyPage({super.key});
@@ -36,13 +37,8 @@ class _MyPageState extends State<MyPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    dio = new Dio();
-    dio.options.baseUrl =
-    'http://10.224.121.247:8000'; //개발 중 백엔드 서버는 본인이 돌림.
-    dio.options.connectTimeout = 5000; // 5s
-    dio.options.receiveTimeout = 3000;
-    dio.options.headers =
-    {'Content-Type': 'application/json'};
+
+    dio = new MyDio();
 
     WidgetsBinding.instance.addPostFrameCallback((_){
       _asyncMethod();
@@ -56,8 +52,8 @@ class _MyPageState extends State<MyPage> {
     accessToken = await storage.read(key: 'accessToken');
     refreshToken = await storage.read(key: 'refreshToken');
     // 헤더에 accessToken과 refreshToken을 저장
-    dio.options.headers['Authorization'] = 'Bear '+accessToken.toString();
-    dio.options.headers['cookie'] = refreshToken;
+    dio.addResponseInterceptor('Authorization', 'Bear '+accessToken.toString());
+    dio.addResponseInterceptor('cookie', refreshToken);
     id = await storage.read(key: 'id');
     dir = await getApplicationDocumentsDirectory(); // application 저장소 접근
     // 기존에 있던 이미지 파일 삭제
@@ -71,7 +67,7 @@ class _MyPageState extends State<MyPage> {
 
     response = await dio.get('/user/'+id.toString()+'/basic-info');
 
-    var tmp = await dio.download('/user/'+id.toString()+'/image-info', path);
+    await dio.download('/user/'+id.toString()+'/image-info', path);
     file = File(path);
 
     setState(() {
@@ -138,10 +134,8 @@ class _MyPageState extends State<MyPage> {
                   MaterialPageRoute(builder: (context) => MemberInfoEdit(name: name.toString(), email: email.toString(), phone: phone.toString(), id: id.toString(),image: FileImage(file!))),
                 );
                 if(refresh['refresh']){
-                  /*setState(() {
-                    file = File(refresh['profile'].path);
-                  });*/
-                  Navigator.popAndPushNamed(context, "/myPage");
+                  //Navigator.popAndPushNamed(context, "/myPage");
+                  Navigator.pop(context);
                   print(true);
                 }
 

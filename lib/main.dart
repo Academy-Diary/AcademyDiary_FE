@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+import 'package:academy_manager/MyDio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -59,13 +59,8 @@ class _MainPageState extends State<MainPage> {
       _asyncMethod();
     });
 
-    dio = new Dio();
-    dio.options.baseUrl =
-    'http://10.224.121.247:8000'; //개발 중 백엔드 서버는 본인이 돌림.
-    dio.options.connectTimeout = 5000; // 5s
-    dio.options.receiveTimeout = 3000;
-    dio.options.headers =
-    {'Content-Type': 'application/json'};
+    dio = new MyDio();
+
   }
 
   _asyncMethod()async {
