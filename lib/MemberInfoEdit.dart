@@ -205,16 +205,7 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
       }
       if (response.statusCode == 200) {
         if (response2 != null || isChangeImage == false) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-                content: Text(
-                    "정상적으로 변경이 완료되었습니다.",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18.sp),
-                ),
-              duration: Duration(seconds: 1),
-            )
-          );
+          Fluttertoast.showToast(msg: "정상적으로 변경이 완료되었습니다.", backgroundColor: Colors.grey);
           Navigator.pop(context, {
             'refresh': true,
             if(isChangeImage)
