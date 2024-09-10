@@ -1,6 +1,8 @@
 import 'dart:convert';
 
+import 'package:academy_manager/MyPage.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -28,7 +30,9 @@ class MyAppBar extends StatelessWidget{
         ),
         IconButton(
           icon: Icon(Icons.search),
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(context, CupertinoPageRoute(builder: (builder)=> MyPage()));
+          },
         ),
       ],
     );
@@ -90,7 +94,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
     dio.interceptors.add(
         InterceptorsWrapper(
           onRequest: (options, handler){
-            options.headers['Authorization'] = token;
+            options.headers['Authorization'] = 'Bear '+token.toString();
             options.headers['cookie'] = refreshToken;
             return handler.next(options);
           },
@@ -253,7 +257,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 await storage.delete(key: "login"); // secure storage에 저장된 아이디,패스워드 값 지우기
                 await storage.delete(key: 'accessToken');
                 await storage.delete(key: 'refreshToken');
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MyApp()));
+                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>MyApp()), (route) => false);
               }catch(err){
 
               }

@@ -1,16 +1,98 @@
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:academy_manager/AfterLogin.dart';
 import 'package:academy_manager/AppBar.dart';  // AppBar.dart 파일에서 MyAppBar를 import
+import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:academy_manager/MemberInfoEdit.dart';  // MemberInfoEdit.dart 파일 import
+import 'package:academy_manager/MemberInfoEdit.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';  // MemberInfoEdit.dart 파일 import
 
-class MyPage extends StatelessWidget {
-  String token;
-  MyPage({super.key, required this.token});
+class MyPage extends StatefulWidget {
+  MyPage({super.key});
+
+  @override
+  State<MyPage> createState() => _MyPageState();
+}
+
+class _MyPageState extends State<MyPage> {
+  var dio;
+
+  static final storage = new FlutterSecureStorage();
+  String? accessToken;
+  String? refreshToken;
+
+  String? name="", id="", email="", phone="";
+
+  File? file;
+
+  var path; // 이미지 저장하는 위치
+
+  var response, dir;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    dio = new Dio();
+    dio.options.baseUrl =
+    'http://10.224.121.247:8000'; //개발 중 백엔드 서버는 본인이 돌림.
+    dio.options.connectTimeout = 5000; // 5s
+    dio.options.receiveTimeout = 3000;
+    dio.options.headers =
+    {'Content-Type': 'application/json'};
+
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      _asyncMethod();
+    });
+
+  }
+
+
+
+  _asyncMethod() async{
+    accessToken = await storage.read(key: 'accessToken');
+    refreshToken = await storage.read(key: 'refreshToken');
+    // 헤더에 accessToken과 refreshToken을 저장
+    dio.options.headers['Authorization'] = 'Bear '+accessToken.toString();
+    dio.options.headers['cookie'] = refreshToken;
+    id = await storage.read(key: 'id');
+    dir = await getApplicationDocumentsDirectory(); // application 저장소 접근
+    // 기존에 있던 이미지 파일 삭제
+    try{
+      File(path);
+      await File(file!.path).delete(); // 기존에 있던 파일 삭제
+      file = null;
+    }catch(err){print(err);}
+
+    path = dir.path+'/'+id.toString()+DateTime.now().toString(); // 시간대별로 새로운 이미지 이름을 만들어 저장
+
+    response = await dio.get('/user/'+id.toString()+'/basic-info');
+
+    var tmp = await dio.download('/user/'+id.toString()+'/image-info', path);
+    file = File(path);
+
+    setState(() {
+      print("start setState");
+      file = null;
+      file = File(path);
+
+      name = response.data['user_name'];
+      id = id;
+      email = response.data['email'];
+      phone = response.data['phone_number'];
+      print("end setState");
+    });
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
+      drawer: MenuDrawer(name: name.toString(), email: email.toString(), subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(
@@ -18,6 +100,7 @@ class MyPage extends StatelessWidget {
           children: [
             Center(
               child: CircleAvatar(
+                foregroundImage: (file != null)? FileImage(file!): AssetImage('img/default.png'),
                 radius: 60.r,
                 backgroundColor: Colors.grey[300],
               ),
@@ -32,13 +115,13 @@ class MyPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("name: 현우진", style: TextStyle(fontSize: 18.sp)),
+                  Text("name: "+name.toString(), style: TextStyle(fontSize: 18.sp)),
                   SizedBox(height: 10.h),
-                  Text("ID: exampleID", style: TextStyle(fontSize: 18.sp)),
+                  Text("ID: "+id.toString(), style: TextStyle(fontSize: 18.sp)),
                   SizedBox(height: 10.h),
-                  Text("Email: example1@gmail.com", style: TextStyle(fontSize: 18.sp)),
+                  Text("Email: "+email.toString(), style: TextStyle(fontSize: 18.sp)),
                   SizedBox(height: 10.h),
-                  Text("phone: 010-0000-0000", style: TextStyle(fontSize: 18.sp)),
+                  Text("phone: "+phone.toString(), style: TextStyle(fontSize: 18.sp)),
                 ],
               ),
             ),
@@ -48,12 +131,20 @@ class MyPage extends StatelessWidget {
                 padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 36.w),
                 backgroundColor: Color(0xFF565D6D),
               ),
-              onPressed: () {
+              onPressed: () async {
                 // MemberInfoEdit 화면으로 이동
-                Navigator.push(
+                var refresh = await Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => MemberInfoEdit()),
+                  MaterialPageRoute(builder: (context) => MemberInfoEdit(name: name.toString(), email: email.toString(), phone: phone.toString(), id: id.toString(),image: FileImage(file!))),
                 );
+                if(refresh['refresh']){
+                  /*setState(() {
+                    file = File(refresh['profile'].path);
+                  });*/
+                  Navigator.popAndPushNamed(context, "/myPage");
+                  print(true);
+                }
+
               },
               child: Text('회원정보 수정', style: TextStyle(color: Colors.white, fontSize: 16.sp)),
             ),

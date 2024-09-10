@@ -181,20 +181,30 @@ class _LoginpageState extends State<LoginPage> {
                           storage.write(key: 'accessToken', value: response.data['accessToken']);
                           storage.delete(key: 'refreshToken');
                           storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
+                          storage.delete(key: 'id');
+                          storage.write(key: 'id', value: id);
 
-                          if(response.data['userStatus'] != null) {
-                            if (response.data['userStatus']['status'] == "ACTIVE")
-                              Navigator.pushReplacement(context,
-                                MaterialPageRoute(
-                                  builder: (context) => AfterLoginPage(),
-                                ),
-                              );
-                          }
-                          else{
-                            //var response = dio.get('/user/{user_id}'); //TODO: 백엔드 개발중
-                            Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (context) => AfterSignUp(name: "Minsoo Kim", role: 1, isKey: false)) // name과 role은 백엔드에서 개발이 완료되면 추가 예정
+                          // 사용자 정보 afterLoginPage로 넘김
+                          String name, email,  phone;
+                          name = response.data['user']['user_name'];
+                          email = response.data['user']['email'];
+                          phone = response.data['user']['phone_number'];
+
+                          if(response.data['userStatus']!= null && response.data['userStatus']['status'] == "APPROVED"){
+                            // 원장의 승인 되면 AfterLoginPage로 이동
+                            Navigator.pushReplacement(context,
+                              MaterialPageRoute(
+                                builder: (context)=> AfterLoginPage(name: name, email: email, id: id, phone: phone,),
+                              ),
+                            );
+                          }else{
+                            // 원장 승인 없으면 초대키 입력 창으로 이동
+                            String tmp = response.data['user']['role'];
+                            int role = (tmp=="STUDENT")? 1: 0;
+                            Navigator.pushReplacement(context,
+                              MaterialPageRoute(
+                                builder: (context)=> AfterSignUp(name: name, role: role, isKey: false,),
+                              ),
                             );
                           }
                         } catch (err) {
