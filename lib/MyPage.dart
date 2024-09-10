@@ -134,8 +134,7 @@ class _MyPageState extends State<MyPage> {
                   MaterialPageRoute(builder: (context) => MemberInfoEdit(name: name.toString(), email: email.toString(), phone: phone.toString(), id: id.toString(),image: FileImage(file!))),
                 );
                 if(refresh['refresh']){
-                  //Navigator.popAndPushNamed(context, "/myPage");
-                  Navigator.pop(context);
+                  Navigator.popAndPushNamed(context, "/myPage");
                   print(true);
                 }
 
