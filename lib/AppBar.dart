@@ -1,3 +1,4 @@
+import 'package:academy_manager/AppSettings.dart';
 import 'package:academy_manager/MyDio.dart';
 import 'package:academy_manager/MyPage.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,8 +8,11 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'package:academy_manager/main.dart';
 
-class MyAppBar extends StatelessWidget{
-  const MyAppBar({super.key});
+class MyAppBar extends StatelessWidget {
+  final bool isSettings; // isSettings 플래그 추가
+  final String? token;
+
+  const MyAppBar({super.key, this.isSettings = false, this.token}); // 기본값은 false로 설정
 
   @override
   PreferredSizeWidget build(BuildContext context) {
@@ -26,9 +30,20 @@ class MyAppBar extends StatelessWidget{
           onPressed: () {},
         ),
         IconButton(
-          icon: Icon(Icons.search),
+          icon: isSettings ? Icon(Icons.settings) : Icon(Icons.person), // 조건에 따라 아이콘 변경
           onPressed: () {
-            Navigator.push(context, CupertinoPageRoute(builder: (builder)=> MyPage()));
+            if (isSettings) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AppSettings()),
+              );
+              // 설정 화면으로 이동
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MyPage()),
+              );
+            }
           },
         ),
       ],
@@ -79,6 +94,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
   _asyncMethod() async{
     token = await storage.read(key: 'accessToken');
     refreshToken = await storage.read(key: 'refreshToken');
+
 
     dio.addResponseInterceptor('Content-Type', 'application/json');
     dio.addResponseInterceptor('Authorization', 'Bear '+token.toString());
@@ -247,4 +263,3 @@ class _MenuDrawerState extends State<MenuDrawer> {
     );
   }
 }
-

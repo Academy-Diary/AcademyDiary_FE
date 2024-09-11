@@ -58,9 +58,7 @@ class _MainPageState extends State<MainPage> {
     WidgetsBinding.instance.addPostFrameCallback((_){
       _asyncMethod();
     });
-
     dio = new MyDio();
-
   }
 
   _asyncMethod()async {
