@@ -1,9 +1,10 @@
 import 'package:academy_manager/AfterLogin.dart';
+import 'package:academy_manager/AfterSignup.dart';
+import 'package:academy_manager/MyDio.dart'; // dio패키지 파일분리
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:dio/dio.dart'; // DIO 패키지로 http 통신
-import 'dart:convert'; // Json encode, Decode를 위한 패키지
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // 로그인 정보 저장하는 저장소에 사용될 패키지
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -35,28 +36,14 @@ class _LoginpageState extends State<LoginPage> {
   void initState() {
     super.initState();
 
-    dio = Dio();
-    dio.interceptors.add(
-        InterceptorsWrapper(
-          onError: (DioError error, ErrorInterceptorHandler handler) {
-            if (error.response?.statusCode == 400) {
-              Map<String, dynamic> res = jsonDecode(error.response.toString());
-              Fluttertoast.showToast(msg: res["message"]);
-            }
-            return handler.next(error);
-          },
-        )
-    );
-    dio.options.baseUrl = 'http://192.168.199.185:8000'; // 개발 중 백엔드 서버 주소
-    dio.options.connectTimeout = 5000; // 5s
-    dio.options.receiveTimeout = 3000;
-    dio.options.headers = {'Content-Type': 'application/json'};
+    dio = new MyDio();
   }
 
   @override
   Widget build(BuildContext context) {
     const mainColor = Color(0xff565D6D);
     const backColor = Color(0xffD9D9D9);
+    dio.addErrorInterceptor(context); // errorInterceptor 설정
 
     return Scaffold(
       backgroundColor: backColor,
@@ -180,15 +167,60 @@ class _LoginpageState extends State<LoginPage> {
                           timeInSecForIosWeb: 1,
                           gravity: ToastGravity.BOTTOM,
                         );
+                      }
+                      else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  "로그인중...",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(fontSize: 18),
+                              ),
+                              duration: Duration(seconds: 1),));
+                        // id, pw를 서버에 보내 맞는 정보인지 확인.
+                        var response;
+                        try {
+                          response = await dio.post('/user/login',
+                              data: {"user_id": id, "password": pw});
+                          if(isAutoLogin){
+                            await storage.write(
+                                key: "login",
+                                value: "useer_id $id password $pw"
+                            );
+                          }
+                          storage.delete(key: 'accessToken');
+                          storage.write(key: 'accessToken', value: response.data['accessToken']);
+                          storage.delete(key: 'refreshToken');
+                          storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
+                          storage.delete(key: 'id');
+                          storage.write(key: 'id', value: id);
 
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AfterLoginPage(),
-                          ),
-                        );
-                      } catch (err) {
-                        // 오류 처리 필요
+                          // 사용자 정보 afterLoginPage로 넘김
+                          String name, email,  phone;
+                          name = response.data['user']['user_name'];
+                          email = response.data['user']['email'];
+                          phone = response.data['user']['phone_number'];
+
+                          if(response.data['userStatus']!= null && response.data['userStatus']['status'] == "APPROVED"){
+                            // 원장의 승인 되면 AfterLoginPage로 이동
+                            Navigator.pushReplacement(context,
+                              MaterialPageRoute(
+                                builder: (context)=> AfterLoginPage(name: name, email: email, id: id, phone: phone,),
+                              ),
+                            );
+                          }else{
+                            // 원장 승인 없으면 초대키 입력 창으로 이동
+                            String tmp = response.data['user']['role'];
+                            int role = (tmp=="STUDENT")? 1: 0;
+                            Navigator.pushReplacement(context,
+                              MaterialPageRoute(
+                                builder: (context)=> AfterSignUp(name: name, role: role, isKey: false,),
+                              ),
+                            );
+                          }
+                        } catch (err){
+                          print(err);
+                        }
                       }
                     }
                   },
@@ -249,7 +281,7 @@ class _LoginpageState extends State<LoginPage> {
               ),
             ],
           ),
-        ),
+        )
       ),
     );
   }

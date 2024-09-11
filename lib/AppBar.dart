@@ -1,12 +1,10 @@
-import 'dart:convert';
-
 import 'package:academy_manager/AppSettings.dart';
+import 'package:academy_manager/MyDio.dart';
 import 'package:academy_manager/MyPage.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:academy_manager/main.dart';
 
@@ -43,7 +41,7 @@ class MyAppBar extends StatelessWidget {
             } else {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => MyPage(token: token ?? 'default_token')),
+                MaterialPageRoute(builder: (context) => MyPage()),
               );
             }
           },
@@ -75,7 +73,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
   String? token; // 토큰
   String? refreshToken; //refreshToken
 
-  var dio = new Dio();
+  var dio;
 
   static final storage = new FlutterSecureStorage();
 
@@ -90,41 +88,25 @@ class _MenuDrawerState extends State<MenuDrawer> {
       _asyncMethod();
     });
 
-    // http 통신을 위한 기본 option 설정
-    dio.options.baseUrl='http://192.168.0.118:8000';
-    dio.options.connectTimeout = 5000; // 5s
-    dio.options.receiveTimeout = 3000;
+    dio = new MyDio();
   }
 
   _asyncMethod() async{
     token = await storage.read(key: 'accessToken');
     refreshToken = await storage.read(key: 'refreshToken');
 
-    // header 추가
-    dio.options.headers={
-      'Content-Type': 'application/json',
-    };
 
-    dio.interceptors.add(
-        InterceptorsWrapper(
-            onRequest: (options, handler){
-              options.headers['Authorization'] = token;
-              options.headers['cookie'] = refreshToken;
-              return handler.next(options);
-            },
-            onError: (DioError error, ErrorInterceptorHandler handler){
-              if(error.response?.statusCode == 400){
-                Map<String, dynamic> res = jsonDecode(error.response.toString());
-                Fluttertoast.showToast(msg: res["message"]);
-              }
-              return handler.next(error);
-            }
-        )
-    );
+    dio.addResponseInterceptor('Content-Type', 'application/json');
+    dio.addResponseInterceptor('Authorization', 'Bear '+token.toString());
+    dio.addResponseInterceptor('cookie', refreshToken);
+    
   }
 
   @override
   Widget build(BuildContext context) {
+    dio.addErrorInterceptor(context);
+
+    // 과목리스트 저장
     List<Widget> menu_subject = [];
     subjects.forEach((subject) {
       menu_subject.add(
@@ -267,11 +249,10 @@ class _MenuDrawerState extends State<MenuDrawer> {
               var response;
               try{
                 response = await dio.post('/user/logout');
-                Map<String, dynamic> res = jsonDecode(response.toString());
                 await storage.delete(key: "login"); // secure storage에 저장된 아이디,패스워드 값 지우기
                 await storage.delete(key: 'accessToken');
                 await storage.delete(key: 'refreshToken');
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>MyApp()));
+                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>MyApp()), (route) => false);
               }catch(err){
 
               }

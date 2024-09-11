@@ -1,9 +1,11 @@
-import 'package:dio/dio.dart';
+import 'package:academy_manager/MyDio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'AfterLogin.dart';  // AfterLogin.dart 파일을 import
+import 'package:academy_manager/MyPage.dart';
+import 'package:academy_manager/AfterSignup.dart';
 import 'package:academy_manager/LoginPage.dart';
 import 'package:academy_manager/SignupPage.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // 화면크기에 따라 ui 크기 설정 및 재배치
@@ -28,6 +30,7 @@ class MyApp extends StatelessWidget {
         routes: {
           "/login": (context) => const LoginPage(),
           "/signin": (context) => const SignupPage(),
+          "/myPage" : (context) => MyPage(), // MyPage의 Route
         },
       ),
     );
@@ -55,22 +58,15 @@ class _MainPageState extends State<MainPage> {
     WidgetsBinding.instance.addPostFrameCallback((_){
       _asyncMethod();
     });
-
-    dio = new Dio();
-    dio.options.baseUrl =
-    'http://192.168.199.185:8000'; //개발 중 백엔드 서버는 본인이 돌림.
-    dio.options.connectTimeout = 5000; // 5s
-    dio.options.receiveTimeout = 3000;
-    dio.options.headers =
-    {'Content-Type': 'application/json'};
+    dio = new MyDio();
   }
 
-  _asyncMethod()async{
+  _asyncMethod()async {
     userInfo = await storage.read(key: "login");
     print(userInfo);
-    if(userInfo != null){
+    if (userInfo != null) {
       Fluttertoast.showToast(
-          msg: "로그인중..",
+        msg: "로그인중..",
         fontSize: 16.0,
         backgroundColor: Colors.grey,
         gravity: ToastGravity.BOTTOM,
@@ -79,16 +75,39 @@ class _MainPageState extends State<MainPage> {
       // userInfo가 있으면? 로그인하여 토큰값을 가져와 페이지를 넘긴다..
       String? id = userInfo?.split(" ")[1];
       String? pw = userInfo?.split(" ")[3];
-      var response = await dio.post("/user/login", data: {"user_id" : id, "password" : pw});
+      var response = await dio.post(
+          "/user/login", data: {"user_id": id, "password": pw});
       print(response.headers['set-cookie']);
-      storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
+      storage.write(
+          key: "refreshToken", value: response.headers['set-cookie'][0]);
       storage.write(key: "accessToken", value: response.data['accessToken']);
-      Navigator.pushReplacement(
-          context,
-          CupertinoPageRoute(
-              builder: (context) => AfterLoginPage(),
-          )
-      );
+      storage.write(key: 'id', value: id.toString());
+
+
+      String name = response.data['user']['user_name'];
+      String email = response.data['user']['email'];
+      String phone = response.data['user']['phone_number'];
+
+      if (response.data['userStatus'] != null &&
+          response.data['userStatus']['status'] == "APPROVED") {
+        // 원장의 승인 되면 AfterLoginPage로 이동
+        Navigator.pushReplacement(context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AfterLoginPage(name: name, email: email, id: id.toString(), phone: phone,),
+          ),
+        );
+      } else {
+        // 원장 승인 없으면 초대키 입력 창으로 이동
+        String tmp = response.data['user']['role'];
+        int role = (tmp == "STUDENT") ? 1 : 0;
+        Navigator.pushReplacement(context,
+          MaterialPageRoute(
+            builder: (context) =>
+                AfterSignUp(name: name, role: role, isKey: false,),
+          ),
+        );
+      }
     }
   }
 
