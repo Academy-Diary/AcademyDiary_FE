@@ -141,7 +141,14 @@ class _LoginpageState extends State<LoginPage> {
                         textColor: Colors.white,
                       );
                     }else {
-
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "로그인중...",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 18),
+                            ),
+                            duration: Duration(seconds: 1),));
                         // id, pw를 서버에 보내 맞는 정보인지 확인.
                         var response;
                         try {
