@@ -65,7 +65,7 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
   Widget build(BuildContext context) {
     dio.addErrorInterceptor(context);
     return Scaffold(
-      appBar: MyAppBar().build(context),
+      appBar: MyAppBar(isSettings: true,).build(context),
       drawer: MenuDrawer(name: name, email: email, subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.all(16.w),
@@ -166,9 +166,6 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
                   child: Text('저장',
                       style: TextStyle(color: Colors.white, fontSize: 16.sp)),
                 ),
-                TextButton(onPressed: () {
-                  delete();
-                }, child: Text('탈퇴하기', style: TextStyle(fontSize: 10.sp),))
               ],
             ),
           ],
@@ -215,20 +212,6 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
       }
     } catch (err) {
       print(err);
-    }
-  }
-
-  delete() async {
-    dio.addResponseInterceptor('Content-Type', 'application/json');
-    try {
-      var response = await dio.delete('/user/'+id.toString());
-      if(response.statusCode == 200){
-        Fluttertoast.showToast(msg: "정상탈퇴 되었습니다.");
-        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>MyApp()), (route)=>false);
-      }
-    } catch (err) {
-      print(err);
-      Navigator.pop(context);
     }
   }
 
