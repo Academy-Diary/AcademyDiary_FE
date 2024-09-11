@@ -18,7 +18,7 @@ class _LoginpageState extends State<LoginPage> {
   // 입력 받은 아이디/비밀번호를 가져오기 위한 컨트롤러
   TextEditingController _idController = TextEditingController();
   TextEditingController _pwController = TextEditingController();
-  String? userInfo; //user 정보 저장을 위한 변수
+  String? userInfo; // user 정보 저장을 위한 변수
 
   // 자동로그인 체크 여부 저장 변수
   bool isAutoLogin = false;
@@ -26,7 +26,7 @@ class _LoginpageState extends State<LoginPage> {
   // 엔터키 눌렀을 때 다음 항목으로 이동시키기 위한 FocusNode()
   final _pwFocusNode = FocusNode();
 
-  //Secure Storage 접근을 위한 변수 초기화
+  // Secure Storage 접근을 위한 변수 초기화
   static final storage = FlutterSecureStorage();
 
   var dio;
@@ -47,7 +47,7 @@ class _LoginpageState extends State<LoginPage> {
           },
         )
     );
-    dio.options.baseUrl = 'http://192.168.200.139:8000'; // 개발 중 백엔드 서버 주소
+    dio.options.baseUrl = 'http://192.168.199.185:8000'; // 개발 중 백엔드 서버 주소
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
     dio.options.headers = {'Content-Type': 'application/json'};
@@ -229,6 +229,12 @@ class _LoginpageState extends State<LoginPage> {
                     TextButton(
                       onPressed: () {
                         // 비밀번호 찾기 페이지 이동
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ResetPasswordPage(),
+                          ),
+                        );
                       },
                       child: Text(
                         "비밀번호 찾기",
@@ -249,6 +255,99 @@ class _LoginpageState extends State<LoginPage> {
   }
 }
 
+class ResetPasswordPage extends StatefulWidget {
+  @override
+  _ResetPasswordPageState createState() => _ResetPasswordPageState();
+}
+
+class _ResetPasswordPageState extends State<ResetPasswordPage> {
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final Dio dio = Dio();
+
+  @override
+  void initState() {
+    super.initState();
+    dio.options.baseUrl = 'http://192.168.199.185:8000'; // 백엔드 서버 주소
+    dio.options.connectTimeout = 5000;
+    dio.options.receiveTimeout = 3000;
+    dio.options.headers = {
+      'Content-Type': 'application/json',
+    };
+  }
+
+  Future<void> _resetPassword() async {
+    String userId = _idController.text;
+    String email = _emailController.text;
+    String phoneNumber = _phoneController.text;
+
+    if (userId.isEmpty || email.isEmpty || phoneNumber.isEmpty) {
+      Fluttertoast.showToast(msg: "모든 정보를 입력해주세요.");
+      return;
+    }
+
+    try {
+      Response response = await dio.post(
+        '/user/reset-password',
+        data: {
+          'user_id': userId,
+          'email': email,
+          'phone_number': phoneNumber,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        Fluttertoast.showToast(msg: response.data['message']);
+        Navigator.pop(context); // 성공 시 이전 페이지로 돌아가기
+      }
+    } on DioError catch (error) {
+      if (error.response?.statusCode == 400) {
+        Fluttertoast.showToast(msg: error.response?.data['message']);
+      } else if (error.response?.statusCode == 404) {
+        Fluttertoast.showToast(msg: "해당하는 유저가 존재하지 않습니다.");
+      } else if (error.response?.statusCode == 500) {
+        Fluttertoast.showToast(msg: "서버에 오류가 발생했습니다. 다시 시도해주세요.");
+      } else {
+        Fluttertoast.showToast(msg: "예상치 못한 오류가 발생했습니다.");
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('비밀번호 초기화')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _idController,
+              decoration: InputDecoration(labelText: '아이디 입력'),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _emailController,
+              decoration: InputDecoration(labelText: '이메일 입력'),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: _phoneController,
+              decoration: InputDecoration(labelText: '휴대폰 번호 입력'),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _resetPassword,
+              child: Text('비밀번호 초기화'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class FindIdPage extends StatefulWidget {
   @override
   _FindIdPageState createState() => _FindIdPageState();
@@ -262,7 +361,7 @@ class _FindIdPageState extends State<FindIdPage> {
   @override
   void initState() {
     super.initState();
-    dio.options.baseUrl = 'http://192.168.200.139:8000'; // 백엔드 서버 주소
+    dio.options.baseUrl = 'http://192.168.199.185:8000'; // 백엔드 서버 주소
     dio.options.connectTimeout = 5000;
     dio.options.receiveTimeout = 3000;
     dio.options.headers = {
