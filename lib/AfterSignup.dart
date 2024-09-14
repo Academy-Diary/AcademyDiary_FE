@@ -1,11 +1,14 @@
+import 'package:academy_manager/SubmitAcademyKey.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // 화면크기에 따라 ui 크기 설정 및 재배치
+import 'package:academy_manager/main.dart';
 
 class AfterSignUp extends StatelessWidget {
   final String name;
   final int role;
   final bool isKey; //학원 키를 받았는지 여부
-  const AfterSignUp({super.key, required this.name, required this.role, required this.isKey});
+ const AfterSignUp({super.key, required this.name, required this.role, required this.isKey});
   // 실제 navigator를 사용하여 인자를 받을 때는 다른 방식 사용.
 
 
@@ -55,7 +58,14 @@ class AfterSignUp extends StatelessWidget {
                   height: 63.h,
                   child: ElevatedButton(
                     onPressed: (){
+                      if(isKey){
+                        // 키 입력이 완료 되었다면 로그인/회원가입 있는 화면으로 넘어감
+                        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (builder)=>MyApp()));
+                      }else{
+                        // 키 입력화면으로 넘어감.
+                        Navigator.pushReplacement(context, CupertinoPageRoute(builder: (builder)=>SubmitAcademyKey( name: name,)));
 
+                      }
                     },
                     child: Text(
                       (isKey) ?"홈으로" : "학원 등록 요청하기",

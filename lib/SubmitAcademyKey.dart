@@ -7,17 +7,16 @@ import 'package:fluttertoast/fluttertoast.dart'; // 화면크기에 따라 ui �
 
 class SubmitAcademyKey extends StatefulWidget {
   String name;
-  MyDio? dio;
-  SubmitAcademyKey({super.key, required this.name, this.dio});
+  SubmitAcademyKey({super.key, required this.name});
 
   @override
-  State<SubmitAcademyKey> createState() => _SubmitAcademyKeyState(this.name, this.dio);
+  State<SubmitAcademyKey> createState() => _SubmitAcademyKeyState(this.name);
 }
 
 class _SubmitAcademyKeyState extends State<SubmitAcademyKey> {
   String name;
   MyDio? dio;
-  _SubmitAcademyKeyState(this.name, this.dio); // SignupPage에서 만든 MyDio()인스턴스를 가져옴
+  _SubmitAcademyKeyState(this.name); // SignupPage에서 만든 MyDio()인스턴스를 가져옴
   late ScrollController _scrollController = ScrollController();
   TextEditingController keyInput = TextEditingController();
 
@@ -28,12 +27,9 @@ class _SubmitAcademyKeyState extends State<SubmitAcademyKey> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    if(dio == null){
-      //MyDio를 넘겨받지 않았을 때
-      dio = new MyDio();
-      _asyncMethod();
 
-    }
+    dio = new MyDio();
+    _asyncMethod();
   }
 
   _asyncMethod() async{
