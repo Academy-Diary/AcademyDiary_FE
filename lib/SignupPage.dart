@@ -516,6 +516,7 @@ class _SignupPageState extends State<SignupPage> {
                                         (route) => false,
                                   );
                                 } else {
+                                  // TODO: 학생일 때는 아래 코드 그대로 사용하고 학부모일 때는 다른 api 사용.
                                   // 회원가입 후 자동으로 등록신청
                                   // 회원가입 시 받은 아이디, 비밀번호로 로그인 후 토큰 값을 받아 진행.
                                   // 로그인
