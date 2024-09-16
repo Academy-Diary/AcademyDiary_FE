@@ -87,7 +87,7 @@ class _MyPageState extends State<MyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyAppBar().build(context),
+      appBar: MyAppBar(isSettings: true,).build(context),
       drawer: MenuDrawer(name: name.toString(), email: email.toString(), subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
