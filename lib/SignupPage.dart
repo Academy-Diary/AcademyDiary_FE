@@ -1,5 +1,5 @@
 import 'package:academy_manager/AfterSignup.dart';
-import 'package:dio/dio.dart';
+import 'package:academy_manager/MyDio.dart';
 import 'package:flutter/material.dart';
 import 'package:email_validator/email_validator.dart'; // 이메일 형식 확인
 import 'package:flutter_screenutil/flutter_screenutil.dart'; // 화면 사이즈 유틸
@@ -41,7 +41,7 @@ class _SignupPageState extends State<SignupPage> {
   bool idck = false; // id 중복검사 여부 체크
 
   // http 통신을 위한 dio
-  late Dio dio;
+  var dio;
 
   @override
   void initState() {
@@ -49,20 +49,10 @@ class _SignupPageState extends State<SignupPage> {
     // 7개의 컨트롤러를 controllers 리스트에 저장
     for (int i = 0; i < 7; i++) controllers.add(TextEditingController());
 
-    dio = Dio();
-    dio.options.baseUrl = 'http://192.168.199.185:8000';
-    dio.options.connectTimeout = 5000; // 5s
-    dio.options.receiveTimeout = 3000;
-    dio.options.headers = {'Content-Type': 'application/json'};
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onError: (DioError error, ErrorInterceptorHandler handler) {
-          Fluttertoast.showToast(msg: error.response?.data["message"]);
-          return handler.next(error);
-        },
-      ),
-    );
+    dio = new MyDio();
+
   }
+
 
   @override
   void dispose() {
@@ -82,6 +72,7 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
+    dio.addErrorInterceptor(context);
     return Scaffold(
       backgroundColor: backColor,
       body: SafeArea(
@@ -450,9 +441,6 @@ class _SignupPageState extends State<SignupPage> {
                               for (TextEditingController v in controllers) {
                                 values.add(v.text);
                               }
-                              int year = int.parse(values[5].split("-")[0]);
-                              int month = int.parse(values[5].split("-")[1]);
-                              int day = int.parse(values[5].split("-")[2]);
 
                               var response = await dio.post('/user/signup',
                                   data: {
@@ -481,20 +469,45 @@ class _SignupPageState extends State<SignupPage> {
                                   );
                                 } else {
                                   // 회원가입 후 자동으로 등록신청
+                                  // 회원가입 시 받은 아이디, 비밀번호로 로그인 후 토큰 값을 받아 진행.
+                                  // 로그인
+                                  var response = await dio.post('/user/login', data:{
+                                    "user_id": values[1],
+                                    "password": values[2]
+                                  });
+                                  String token = response.data['accessToken'];
+                                  storage.delete(key: 'accessToken');
+                                  storage.write(key: 'accessToken', value: response.data['accessToken']);
+                                  storage.delete(key: 'refreshToken');
+                                  storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
+                                  storage.delete(key: 'id');
+                                  storage.write(key: 'id', value: values[1]);
                                   // 초대키 등록 api 사용.
-
-                                  // 신청완료 후 화면 넘어감. 이전에 탐색한 모든 화면은 지움
-                                  Navigator.pushAndRemoveUntil(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AfterSignUp(
-                                        name: values[0],
-                                        role: 1, // 학생이면 1 학부모이면 0
-                                        isKey: true,
+                                  dio.addResponseInterceptor('Authorization', 'Bear '+token);
+                                  response = await dio.post('/registeration/request/user', data: {
+                                    "user_id" : values[1],
+                                    "academy_key" : values[6],
+                                    "role" : "STUDENT"
+                                  });
+                                  if(response.statusCode == 201){
+                                    Fluttertoast.showToast(
+                                        msg: "회원가입 및 학원 등록 요청이 \n완료되었습니다.",
+                                      backgroundColor: Colors.grey,
+                                      fontSize: 18.sp
+                                    );
+                                    // 신청완료 후 화면 넘어감. 이전에 탐색한 모든 화면은 지움
+                                    Navigator.pushAndRemoveUntil(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AfterSignUp(
+                                          name: values[0],
+                                          role: 1, // 학생이면 1 학부모이면 0
+                                          isKey: true,
+                                        ),
                                       ),
-                                    ),
-                                        (route) => false,
-                                  );
+                                          (route) => false,
+                                    );
+                                  }
                                 }
                               }
                             }
