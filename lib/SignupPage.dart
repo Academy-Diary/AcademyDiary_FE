@@ -107,7 +107,7 @@ class _SignupPageState extends State<SignupPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         SizedBox(
-                          width: 130.w,
+                          width: 160.w,
                           height: 51.h,
                           child: RadioListTile(
                             title: const Text("학생"),
@@ -121,7 +121,7 @@ class _SignupPageState extends State<SignupPage> {
                               }),
                         ),
                         SizedBox(
-                          width: 140.w,
+                          width: 160.w,
                           height: 51.h,
                           child: RadioListTile(
                               title: const Text("학부모"),
