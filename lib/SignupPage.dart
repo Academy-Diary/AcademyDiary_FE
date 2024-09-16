@@ -48,6 +48,9 @@ class _SignupPageState extends State<SignupPage> {
   // 학생/학부모 구분
   Role role = Role.STUDENT;
 
+  // 학원 초대키 hint text
+  String? hintText = '학원초대키';
+
   @override
   void initState() {
     super.initState();
@@ -113,6 +116,7 @@ class _SignupPageState extends State<SignupPage> {
                               onChanged: (value){
                                 setState(() {
                                   role = Role.STUDENT;
+                                  hintText = "학원초대키";
                                 });
                               }),
                         ),
@@ -126,6 +130,7 @@ class _SignupPageState extends State<SignupPage> {
                               onChanged: (value){
                                 setState(() {
                                   role = Role.PARENT;
+                                  hintText = "학생아이디";
                                 });
                               }),
                         )
@@ -439,9 +444,16 @@ class _SignupPageState extends State<SignupPage> {
                       child: Padding(
                         padding: EdgeInsets.only(top: midSize),
                         child: TextFormField(
+                          validator: (value){
+                            if(role == Role.PARENT && value!.isEmpty){
+                              return "학생 아이디를 입력하세요";
+                            }else{
+                              return null;
+                            }
+                          },
                           controller: controllers[6],
-                          decoration: const InputDecoration(
-                            hintText: "학원초대키",
+                          decoration: InputDecoration(
+                            hintText: hintText,
                           ),
                           focusNode: _keyFocusNode,
                           onFieldSubmitted: (_) {},
