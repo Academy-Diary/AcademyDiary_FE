@@ -45,7 +45,7 @@ class _ScoreGraphState extends State<ScoreGraph> {
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.fromLTRB(0, 24.sp, 0, 20.sp),
+                    padding: EdgeInsets.fromLTRB(0, 24.sp, 0, 20.sp),
                     child: _LineChart()
                 ),
                 Row(
@@ -101,61 +101,61 @@ class _LineChart extends StatelessWidget {
       height: 400.h,
       child: LineChart(
         LineChartData(
-          lineBarsData: [
-            LineChartBarData(
-              spots: [
-                FlSpot(1, 40.3),
-                FlSpot(2, 80.2),
-              ],// 각 데이터들의 더미 데이터
-              color: Colors.redAccent,
-            ),
-            LineChartBarData(
-              spots: [
-                FlSpot(0, 50),
-                FlSpot(3, 100),
-              ],// 각 데이터들의 더미 데이터
-              color: Colors.cyan,
-            )
-          ], // LineChartBarData들의 list형식, 한개의 LineChartBarData는 1개의 선 그래프
-          titlesData: FlTitlesData(
-            // 좌우상하 텍스트 설정
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                reservedSize: 40.w,
-                getTitlesWidget: (value, meta) {
-                  return Padding(
-                    padding: EdgeInsets.only(right: 5.w),
-                    child: Text(
-                      value.toInt().toString()+"점",
-                      textAlign: TextAlign.end,
-                      ),
-                  );
-                },
-                showTitles: true,
-                interval: 20, // 20점 간격으로 띄우기
+            lineBarsData: [
+              LineChartBarData(
+                spots: [
+                  FlSpot(1, 40.3),
+                  FlSpot(2, 80.2),
+                ],// 각 데이터들의 더미 데이터
+                color: Colors.redAccent,
+              ),
+              LineChartBarData(
+                spots: [
+                  FlSpot(0, 50),
+                  FlSpot(3, 100),
+                ],// 각 데이터들의 더미 데이터
+                color: Colors.cyan,
               )
+            ], // LineChartBarData들의 list형식, 한개의 LineChartBarData는 1개의 선 그래프
+            titlesData: FlTitlesData(
+              // 좌우상하 텍스트 설정
+                leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      reservedSize: 40.w,
+                      getTitlesWidget: (value, meta) {
+                        return Padding(
+                          padding: EdgeInsets.only(right: 5.w),
+                          child: Text(
+                            value.toInt().toString()+"점",
+                            textAlign: TextAlign.end,
+                          ),
+                        );
+                      },
+                      showTitles: true,
+                      interval: 20, // 20점 간격으로 띄우기
+                    )
+                ),
+                rightTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false,
+                    )
+                ),
+                topTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false,
+                    )
+                )
             ),
-            rightTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: false,
-              )
-            ),
-            topTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: false,
-              )
-            )
-          ),
-          // x축 y축의 최대 최소 값 설정
-          minX: 0,
-          maxX: 12,
-          minY: 0,
-          maxY: 100,
+            // x축 y축의 최대 최소 값 설정
+            minX: 0,
+            maxX: 12,
+            minY: 0,
+            maxY: 100,
 
-          backgroundColor: Colors.white,
-          gridData: FlGridData(
-            show: false
-          ) // 선 그래프의 격자선 없애기
+            backgroundColor: Colors.white,
+            gridData: FlGridData(
+                show: false
+            ) // 선 그래프의 격자선 없애기
         ),
       ),
     );

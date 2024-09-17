@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:academy_manager/MyDio.dart';
+import 'package:academy_manager/API/ResetPassword_API.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:dio/dio.dart';
 
@@ -12,7 +12,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final dio = new MyDio();
+  final ResetPasswordApi resetPasswordApi = ResetPasswordApi();
 
   @override
   void initState() {
@@ -30,14 +30,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     }
 
     try {
-      Response response = await dio.post(
-        '/user/reset-password',
-        data: {
-          'user_id': userId,
-          'email': email,
-          'phone_number': phoneNumber,
-        },
-      );
+      Response response = await resetPasswordApi.resetPassword(userId, email, phoneNumber);
 
       if (response.statusCode == 200) {
         Fluttertoast.showToast(msg: response.data['message']);

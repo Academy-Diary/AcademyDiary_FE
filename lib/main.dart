@@ -1,14 +1,12 @@
-import 'package:academy_manager/MyDio.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:academy_manager/API/Login_API.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'AfterLogin.dart';  // AfterLogin.dart 파일을 import
-import 'package:academy_manager/MyPage.dart';
-import 'package:academy_manager/AfterSignup.dart';
-import 'package:academy_manager/LoginPage.dart';
-import 'package:academy_manager/SignupPage.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart'; // 화면크기에 따라 ui 크기 설정 및 재배치
+import 'package:academy_manager/UI/AfterLogin_UI.dart';
+import 'package:academy_manager/UI/MyPage_UI.dart';
+import 'package:academy_manager/UI/AfterSignup_UI.dart';
+import 'package:academy_manager/UI/Login_UI.dart';
+import 'package:academy_manager/UI/Signup_UI.dart';
 
 void main() {
   runApp(MyApp());
@@ -18,19 +16,19 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
-      designSize: const Size(430, 932), // Figma 기준 화면 사이즈
+      designSize: const Size(430, 932),
       splitScreenMode: true,
       builder: (context, child) => MaterialApp(
-        debugShowCheckedModeBanner: false, // 앱내 우측 상단 debug 라벨 없애기
+        debugShowCheckedModeBanner: false,
         title: 'Academy Manager',
         theme: ThemeData(
           useMaterial3: false,
         ),
-        home: MainPage(), // 앱 시작 시 MainPage를 표시
+        home: MainPage(),
         routes: {
           "/login": (context) => const LoginPage(),
           "/signin": (context) => const SignupPage(),
-          "/myPage" : (context) => MyPage(), // MyPage의 Route
+          "/myPage": (context) => MyPage(),
         },
       ),
     );
@@ -45,68 +43,67 @@ class MainPage extends StatefulWidget {
 }
 
 class _MainPageState extends State<MainPage> {
-  static final storage = new FlutterSecureStorage();
+  final LoginApi loginApi = LoginApi();
   String? userInfo;
-  var dio; // dio 패키지 사용을 위한 변수
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
-    // 비동기로 Flutter Secure Storage 정보를 불러오는 작업
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      _asyncMethod();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeLogin();
     });
-    dio = new MyDio();
   }
 
-  _asyncMethod()async {
-    userInfo = await storage.read(key: "login");
-    print(userInfo);
+  Future<void> _initializeLogin() async {
+    userInfo = await loginApi.getUserInfo();
     if (userInfo != null) {
       Fluttertoast.showToast(
-        msg: "로그인중..",
+        msg: "로그인중...",
         fontSize: 16.0,
         backgroundColor: Colors.grey,
         gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 1,
       );
-      // userInfo가 있으면? 로그인하여 토큰값을 가져와 페이지를 넘긴다..
+
       String? id = userInfo?.split(" ")[1];
       String? pw = userInfo?.split(" ")[3];
-      var response = await dio.post(
-          "/user/login", data: {"user_id": id, "password": pw});
-      print(response.headers['set-cookie']);
-      storage.write(
-          key: "refreshToken", value: response.headers['set-cookie'][0]);
-      storage.write(key: "accessToken", value: response.data['accessToken']);
-      storage.write(key: 'id', value: id.toString());
+      try {
+        var response = await loginApi.login(id!, pw!);
 
+        // Save tokens from response headers and accessToken from response data
+        await loginApi.saveTokens(response, id);
 
-      String name = response.data['user']['user_name'];
-      String email = response.data['user']['email'];
-      String phone = response.data['user']['phone_number'];
+        String name = response.data['user']['user_name'];
+        String email = response.data['user']['email'];
+        String phone = response.data['user']['phone_number'];
 
-      if (response.data['userStatus'] != null &&
-          response.data['userStatus']['status'] == "APPROVED") {
-        // 원장의 승인 되면 AfterLoginPage로 이동
-        Navigator.pushReplacement(context,
-          MaterialPageRoute(
-            builder: (context) =>
-                AfterLoginPage(name: name, email: email, id: id.toString(), phone: phone,),
-          ),
-        );
-      } else {
-        // 원장 승인 없으면 초대키 입력 창으로 이동
-        String tmp = response.data['user']['role'];
-        int role = (tmp == "STUDENT") ? 1 : 0;
-        Navigator.pushReplacement(context,
-          MaterialPageRoute(
-            builder: (context) =>
-                AfterSignUp(name: name, role: role, isKey: false,),
-          ),
-        );
+        if (response.data['userStatus'] != null &&
+            response.data['userStatus']['status'] == "APPROVED") {
+          // 원장의 승인 된 경우 AfterLoginPage로 이동
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AfterLoginPage(
+                name: name,
+                email: email,
+                id: id,
+                phone: phone,
+              ),
+            ),
+          );
+        } else {
+          // 원장의 승인이 없으면 초대키 입력 창으로 이동
+          String tmp = response.data['user']['role'];
+          int role = (tmp == "STUDENT") ? 1 : 0;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AfterSignUp(name: name, role: role, isKey: false),
+            ),
+          );
+        }
+      } catch (e) {
+        Fluttertoast.showToast(msg: "로그인 중 오류가 발생했습니다.");
       }
     }
   }
@@ -116,51 +113,44 @@ class _MainPageState extends State<MainPage> {
     const backColor = Color(0xffD9D9D9);
     const mainColor = Color(0xff565D6D);
     return Scaffold(
-
       backgroundColor: backColor,
       body: SafeArea(
         child: Center(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center, // 화면 세로 중앙으로 정렬
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 "AcademyPro",
-                style: TextStyle(
-                  fontSize: 40.sp,
-                ),
+                style: TextStyle(fontSize: 40.sp),
               ),
-              SizedBox(height: 86.5.h), // 수직 간격 조정
+              SizedBox(height: 86.5.h),
               SizedBox(
                 width: 185.0.w,
                 height: 63.0.h,
                 child: ElevatedButton(
                   child: Text(
                     "로그인",
-                    style: TextStyle(
-                      fontSize: 24.sp, // 텍스트 크기 조정
-                    ),
+                    style: TextStyle(fontSize: 24.sp),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pushNamedAndRemoveUntil("/login", (route) => false); // 로그인 페이지 이동, 첫 화면은 지움
+                    Navigator.of(context).pushNamedAndRemoveUntil("/login", (route) => false);
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: mainColor,
                   ),
                 ),
               ),
-              SizedBox(height: 50.h), // 수직 간격 조정
+              SizedBox(height: 50.h),
               SizedBox(
                 width: 185.0.w,
                 height: 63.0.h,
                 child: ElevatedButton(
                   child: Text(
                     "회원가입",
-                    style: TextStyle(
-                      fontSize: 24.sp, // 텍스트 크기 조정
-                    ),
+                    style: TextStyle(fontSize: 24.sp),
                   ),
                   onPressed: () {
-                    Navigator.of(context).pushNamed("/signin"); // 회원가입 페이지 이동. 첫 화면은 지우지 않음.
+                    Navigator.of(context).pushNamed("/signin");
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: mainColor,

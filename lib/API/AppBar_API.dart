@@ -1,4 +1,4 @@
-import 'package:academy_manager/MyDio.dart';
+import 'package:academy_manager/Dio/MyDio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AppbarApi {

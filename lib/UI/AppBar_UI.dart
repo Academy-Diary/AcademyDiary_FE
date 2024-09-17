@@ -1,6 +1,6 @@
 import 'package:academy_manager/API/AppBar_API.dart';
-import 'package:academy_manager/AppSettings.dart';
-import 'package:academy_manager/MyPage.dart';
+import 'package:academy_manager/UI/AppSettings_UI.dart';
+import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

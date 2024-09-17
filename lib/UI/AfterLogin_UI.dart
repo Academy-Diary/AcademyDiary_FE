@@ -1,7 +1,7 @@
 import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'NoticeDetail.dart';  // NoticeDetail 화면을 import
+import 'NoticeDetail_UI.dart';  // NoticeDetail 화면을 import
 
 class AfterLoginPage extends StatelessWidget {
   String name, id, email, phone;
