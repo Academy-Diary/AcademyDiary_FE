@@ -154,43 +154,67 @@ class _LoginpageState extends State<LoginPage> {
                         try {
                           response = await dio.post('/user/login',
                               data: {"user_id": id, "password": pw});
-                          if(isAutoLogin){
+                          if (isAutoLogin) {
                             await storage.write(
                                 key: "login",
                                 value: "useer_id $id password $pw"
                             );
                           }
-                          storage.delete(key: 'accessToken');
-                          storage.write(key: 'accessToken', value: response.data['accessToken']);
-                          storage.delete(key: 'refreshToken');
-                          storage.write(key: "refreshToken", value: response.headers['set-cookie'][0]);
-                          storage.delete(key: 'id');
-                          storage.write(key: 'id', value: id);
+                          if (response.data['user']['role'] == "STUDENT" ||
+                              response.data['user']['role'] == "PARENT") {
+                            // 로그인한 사용자가 STUDENT와 PARENT이면 수행
+                            storage.delete(key: 'accessToken');
+                            storage.write(key: 'accessToken',
+                                value: response.data['accessToken']);
+                            storage.delete(key: 'refreshToken');
+                            storage.write(key: "refreshToken",
+                                value: response.headers['set-cookie'][0]);
+                            storage.delete(key: 'id');
+                            storage.write(key: 'id', value: id);
 
-                          // 사용자 정보 afterLoginPage로 넘김
-                          String name, email,  phone;
-                          name = response.data['user']['user_name'];
-                          email = response.data['user']['email'];
-                          phone = response.data['user']['phone_number'];
+                            // 사용자 정보 afterLoginPage로 넘김
+                            String name, email, phone;
+                            name = response.data['user']['user_name'];
+                            email = response.data['user']['email'];
+                            phone = response.data['user']['phone_number'];
 
-                          if(response.data['userStatus']!= null && response.data['userStatus']['status'] == "APPROVED"){
-                            // 원장의 승인 되면 AfterLoginPage로 이동
-                            Navigator.pushReplacement(context,
-                              MaterialPageRoute(
-                                builder: (context)=> AfterLoginPage(name: name, email: email, id: id, phone: phone,),
-                              ),
-                            );
+                            if (response.data['userStatus'] != null && response
+                                .data['userStatus']['status'] == "APPROVED") {
+                              // 원장의 승인 되면 AfterLoginPage로 이동
+                              Navigator.pushReplacement(context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AfterLoginPage(name: name,
+                                        email: email,
+                                        id: id,
+                                        phone: phone,),
+                                ),
+                              );
+                            } else {
+                              // 원장 승인 없으면 초대키 입력 창으로 이동
+                              String tmp = response.data['user']['role'];
+                              int role = (tmp == "STUDENT") ? 1 : 0;
+                              Navigator.pushReplacement(context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AfterSignUp(
+                                        name: name, role: role, isKey: false,),
+                                ),
+                              );
+                            }
                           }else{
-                            // 원장 승인 없으면 초대키 입력 창으로 이동
-                            String tmp = response.data['user']['role'];
-                            int role = (tmp=="STUDENT")? 1: 0;
-                            Navigator.pushReplacement(context,
-                              MaterialPageRoute(
-                                builder: (context)=> AfterSignUp(name: name, role: role, isKey: false,),
-                              ),
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "학생과 학부모만 로그인이 가능합니다.",
+                                    style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  backgroundColor: Colors.redAccent,
+                                )
                             );
                           }
-                        } catch (err){
+                          } catch (err) {
                           print(err);
                         }
                       }
