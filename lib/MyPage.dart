@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:academy_manager/AfterLogin.dart';
-import 'package:academy_manager/AppBar.dart';  // AppBar.dart 파일에서 MyAppBar를 import
+import 'package:academy_manager/UI/AppBar_UI.dart';  // AppBar.dart 파일에서 MyAppBar를 import
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';

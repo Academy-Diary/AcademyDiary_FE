@@ -1,7 +1,7 @@
 import 'package:academy_manager/MyDio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class AuthService {
+class AppbarApi {
   final _dio = MyDio();
   static final storage = FlutterSecureStorage();
 

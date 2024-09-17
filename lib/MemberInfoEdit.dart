@@ -5,7 +5,7 @@ import 'package:dio/dio.dart';
 import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:academy_manager/AppBar.dart';
+import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:academy_manager/main.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';

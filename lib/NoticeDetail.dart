@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:academy_manager/AppBar.dart';  // AppBar.dart 파일에서 MyAppBar를 import
+import 'package:academy_manager/UI/AppBar_UI.dart';  // AppBar.dart 파일에서 MyAppBar를 import
 
 class NoticeDetail extends StatelessWidget {
   @override
