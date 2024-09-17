@@ -6,6 +6,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart'; // 화면 사이즈
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
+enum Role {STUDENT, PARENT}
+
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
 
@@ -42,6 +44,12 @@ class _SignupPageState extends State<SignupPage> {
 
   // http 통신을 위한 dio
   var dio;
+
+  // 학생/학부모 구분
+  Role role = Role.STUDENT;
+
+  // 학원 초대키 hint text
+  String? hintText = '학원초대키';
 
   @override
   void initState() {
@@ -94,6 +102,39 @@ class _SignupPageState extends State<SignupPage> {
                           fontSize: 40.sp,
                         ),
                       ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SizedBox(
+                          width: 160.w,
+                          height: 51.h,
+                          child: RadioListTile(
+                            title: const Text("학생"),
+                              value: Role.STUDENT,
+                              groupValue: role,
+                              onChanged: (value){
+                                setState(() {
+                                  role = Role.STUDENT;
+                                  hintText = "학원초대키";
+                                });
+                              }),
+                        ),
+                        SizedBox(
+                          width: 160.w,
+                          height: 51.h,
+                          child: RadioListTile(
+                              title: const Text("학부모"),
+                              value: Role.PARENT,
+                              groupValue: role,
+                              onChanged: (value){
+                                setState(() {
+                                  role = Role.PARENT;
+                                  hintText = "학생아이디";
+                                });
+                              }),
+                        )
+                      ],
                     ),
                     SizedBox(
                       width: 342.w,
@@ -403,9 +444,16 @@ class _SignupPageState extends State<SignupPage> {
                       child: Padding(
                         padding: EdgeInsets.only(top: midSize),
                         child: TextFormField(
+                          validator: (value){
+                            if(role == Role.PARENT && value!.isEmpty){
+                              return "학생 아이디를 입력하세요";
+                            }else{
+                              return null;
+                            }
+                          },
                           controller: controllers[6],
-                          decoration: const InputDecoration(
-                            hintText: "학원초대키",
+                          decoration: InputDecoration(
+                            hintText: hintText,
                           ),
                           focusNode: _keyFocusNode,
                           onFieldSubmitted: (_) {},
@@ -450,7 +498,7 @@ class _SignupPageState extends State<SignupPage> {
                                     "password": values[2],
                                     "phone_number": values[4],
                                     "birth_date": values[5] + "T00:00:00Z",
-                                    "role": "STUDENT",
+                                    "role" : (role == Role.STUDENT)? "STUDENT" : "PARENT"
                                   });
                               if (response.statusCode == 201) {
                                 // 회원가입 성공
@@ -468,6 +516,7 @@ class _SignupPageState extends State<SignupPage> {
                                         (route) => false,
                                   );
                                 } else {
+                                  // TODO: 학생일 때는 아래 코드 그대로 사용하고 학부모일 때는 다른 api 사용.
                                   // 회원가입 후 자동으로 등록신청
                                   // 회원가입 시 받은 아이디, 비밀번호로 로그인 후 토큰 값을 받아 진행.
                                   // 로그인
@@ -487,7 +536,7 @@ class _SignupPageState extends State<SignupPage> {
                                   response = await dio.post('/registeration/request/user', data: {
                                     "user_id" : values[1],
                                     "academy_key" : values[6],
-                                    "role" : "STUDENT"
+                                    "role" : (role == Role.STUDENT)? "STUDENT" : "PARENT"
                                   });
                                   if(response.statusCode == 201){
                                     Fluttertoast.showToast(
