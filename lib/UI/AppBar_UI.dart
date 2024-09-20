@@ -1,7 +1,7 @@
 import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
-import 'package:academy_manager/API/AppBar_API.dart';
+import 'package:academy_manager/UI/NoticeList_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/main.dart';
@@ -144,12 +144,14 @@ class _MenuDrawerState extends State<MenuDrawer> {
                     title: Text("학원공지", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 학원 공지 화면으로 이동
+                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>NoticeList()));
                     },
                   ),
                   ListTile(
                     title: Text("수업공지", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 수업 공지 화면으로 이동
+                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>NoticeList(isAcademy: false,)));
                     },
                   ),
                 ],

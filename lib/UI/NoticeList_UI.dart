@@ -4,11 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/UI/NoticeDetail_UI.dart';
 
 class NoticeList extends StatefulWidget {
+  bool? isAcademy; //학원 공지 여부 true: 학원공지, false: 수업공지
+  NoticeList({super.key, this.isAcademy=true}); // isAcademy의 기본값은 true,
   @override
-  _NoticeListState createState() => _NoticeListState();
+  _NoticeListState createState() => _NoticeListState(this.isAcademy);
 }
 
 class _NoticeListState extends State<NoticeList> {
+  bool? isAcademy;
+  _NoticeListState(this.isAcademy);
   String _selectedCategory = '학원공지';
 
   @override
@@ -21,23 +25,24 @@ class _NoticeListState extends State<NoticeList> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButton<String>(
-              value: _selectedCategory,
-              items: <String>['학원공지', '수업공지'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value, style: TextStyle(fontSize: 18.sp)),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedCategory = newValue!;
-                });
-              },
-            ),
+            if(!isAcademy!)
+              DropdownButton<String>(
+                value: _selectedCategory,
+                items: <String>['학원공지', '수업공지'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value, style: TextStyle(fontSize: 18.sp)),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedCategory = newValue!;
+                  });
+                },
+              ),
             Expanded(
               child: ListView(
-                children: _selectedCategory == '학원공지'
+                children: isAcademy==true
                     ? _buildAcademyNotices()
                     : _buildClassNotices(),
               ),
