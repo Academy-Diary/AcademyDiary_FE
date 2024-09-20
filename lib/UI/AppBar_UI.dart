@@ -2,6 +2,7 @@ import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:academy_manager/UI/NoticeList_UI.dart';
+import 'package:academy_manager/UI/ScoreGraph_UI.dart';
 import 'package:academy_manager/UI/ViewScore_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -111,6 +112,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
           title: Text(subject, style: TextStyle(fontSize: 14.sp)),
           onTap: () {
             // 과목 클릭 시 처리할 로직
+            Navigator.push(context, MaterialPageRoute(builder: (builder)=> ScoreGraph(subjectName: subject)));
           },
         ),
       );
