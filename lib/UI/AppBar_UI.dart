@@ -1,5 +1,6 @@
 import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
+import 'package:academy_manager/UI/Bill_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:academy_manager/UI/NoticeList_UI.dart';
 import 'package:academy_manager/UI/ScoreGraph_UI.dart';
@@ -55,9 +56,9 @@ class MyAppBar extends StatelessWidget {
 class MenuDrawer extends StatefulWidget {
   final String name;
   final String email;
-  final List<String> subjects;
+  List<String>? subjects;
 
-  const MenuDrawer({super.key, required this.name, required this.email, required this.subjects});
+  MenuDrawer({super.key, this.name="", this.email="", this.subjects});
 
   @override
   State<MenuDrawer> createState() => _MenuDrawerState(subjects: subjects);
@@ -66,7 +67,7 @@ class MenuDrawer extends StatefulWidget {
 class _MenuDrawerState extends State<MenuDrawer> {
   String? name;
   String? email;
-  final List<String> subjects;
+  List<String>? subjects;
   bool isNoticeClicked = false;
   bool isGradeClicked = false;
   bool isExpenseClicked = false;
@@ -76,7 +77,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
 
   final AppbarApi _appBarApi= AppbarApi(); // AuthService 객체 생성
 
-  _MenuDrawerState({required this.subjects});
+  _MenuDrawerState({this.subjects});
 
   @override
   void initState() {
@@ -106,7 +107,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
   Widget build(BuildContext context) {
     // 과목 리스트 저장
     List<Widget> menu_subject = [];
-    subjects.forEach((subject) {
+    subjects!.forEach((subject) {
       menu_subject.add(
         ListTile(
           title: Text(subject, style: TextStyle(fontSize: 14.sp)),
@@ -236,15 +237,16 @@ class _MenuDrawerState extends State<MenuDrawer> {
               child: Column(
                 children: [
                   ListTile(
-                    title: Text("납부현황", style: TextStyle(fontSize: 15.sp)),
+                    title: Text("청구서 조회", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
-                      // 납부 현황 화면으로 이동
+                      // 청구서 조회 화면으로 이동
+                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>Bill()));
                     },
                   ),
                   ListTile(
-                    title: Text("납부내역", style: TextStyle(fontSize: 15.sp)),
+                    title: Text("납부 현황", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
-                      // 납부 내역 화면으로 이동
+                      // 납부 현황 화면으로 이동
                     },
                   ),
                 ],
