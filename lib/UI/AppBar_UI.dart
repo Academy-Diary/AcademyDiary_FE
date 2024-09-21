@@ -1,5 +1,6 @@
 import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
+import 'package:academy_manager/UI/BillList_UI.dart';
 import 'package:academy_manager/UI/Bill_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:academy_manager/UI/NoticeList_UI.dart';
@@ -247,6 +248,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
                     title: Text("납부 현황", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 납부 현황 화면으로 이동
+                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>BillList()));
                     },
                   ),
                 ],
