@@ -5,6 +5,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:academy_manager/Dio/MyDio.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/UI/Signup_UI.dart';
+import 'package:dio/dio.dart';
 
 class SignupPageAPI {
   static final MyDio dio = MyDio();
@@ -60,19 +61,38 @@ class SignupPageAPI {
         }
       } catch (e) {
         setState(false);  // 오류 발생 시에도 false로 상태 업데이트
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "중복된 아이디입니다.",
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white),
+
+        // MyDio의 ErrorInterceptor에서 서버로부터 받은 에러 메시지를 가져오기
+        if (e is DioError && e.response != null && e.response?.data != null) {
+          // 서버로부터 받은 에러 메시지가 있을 경우 해당 메시지 출력
+          final errorMessage = e.response?.data['message'] ?? "통신 중 오류가 발생하였습니다.";
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                errorMessage,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white),
+              ),
+              duration: Duration(seconds: 2),
             ),
-            duration: Duration(seconds: 1),
-          ),
-        );
+          );
+        } else {
+          // 서버 메시지가 없을 경우 일반 통신 오류 메시지 출력
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                "통신 중 오류가 발생하였습니다.",
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white),
+              ),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
       }
     }
   }
+
 
   static Future<void> signup(
       BuildContext context,
@@ -124,11 +144,20 @@ class SignupPageAPI {
                 (route) => false,
           );
         } else {
-          await _registerWithInviteKey(context, values, role, storage);
+          if (role == Role.STUDENT) {
+            // 학생일 경우 기존 로직대로 registeration/request/user 호출
+            await _registerWithInviteKey(context, values, role, storage);
+          } else if (role == Role.PARENT) {
+            // 학부모일 경우 새로운 API 호출 (추후 개발 예정)
+            // 아래 부분은 추후 학부모 회원가입 API가 개발되면 대체
+            print("학부모 회원가입 - 새로운 API 호출 필요");
+
+          }
         }
       }
     }
   }
+
 
   static Future<void> _registerWithInviteKey(
       BuildContext context,
