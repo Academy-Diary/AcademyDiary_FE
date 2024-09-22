@@ -1,11 +1,9 @@
-import 'package:academy_manager/AppSettings.dart';
-import 'package:academy_manager/MyDio.dart';
-import 'package:academy_manager/MyPage.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:academy_manager/API/AppBar_API.dart';
+import 'package:academy_manager/UI/AppSettings_UI.dart';
+import 'package:academy_manager/UI/MyPage_UI.dart';
+import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import 'package:academy_manager/main.dart';
 
 class MyAppBar extends StatelessWidget {
@@ -27,17 +25,18 @@ class MyAppBar extends StatelessWidget {
       actions: [
         IconButton(
           icon: Icon(Icons.notifications),
-          onPressed: () {},
+          onPressed: () {
+            // 알림 버튼 클릭 시 처리할 로직
+          },
         ),
         IconButton(
-          icon: isSettings ? Icon(Icons.settings) : Icon(Icons.person), // 조건에 따라 아이콘 변경
+          icon: isSettings ? Icon(Icons.settings) : Icon(Icons.person),
           onPressed: () {
             if (isSettings) {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => AppSettings()),
               );
-              // 설정 화면으로 이동
             } else {
               Navigator.push(
                 context,
@@ -51,11 +50,11 @@ class MyAppBar extends StatelessWidget {
   }
 }
 
-
 class MenuDrawer extends StatefulWidget {
   final String name;
   final String email;
   final List<String> subjects;
+
   const MenuDrawer({super.key, required this.name, required this.email, required this.subjects});
 
   @override
@@ -70,54 +69,46 @@ class _MenuDrawerState extends State<MenuDrawer> {
   bool isGradeClicked = false;
   bool isExpenseClicked = false;
   bool isSubjectClicked = false;
-  String? token; // 토큰
-  String? refreshToken; //refreshToken
+  String? token;
+  String? refreshToken;
 
-  var dio;
+  final AppbarApi _appBarApi= AppbarApi(); // AuthService 객체 생성
 
-  static final storage = new FlutterSecureStorage();
-
-  _MenuDrawerState({ required this.name, required this.email, required this.subjects});
+  _MenuDrawerState({ required this.name, required this.email, required this.subjects });
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-
-    WidgetsBinding.instance.addPostFrameCallback((_){
-      _asyncMethod();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeTokens();
     });
-
-    dio = new MyDio();
   }
 
-  _asyncMethod() async{
-    token = await storage.read(key: 'accessToken');
-    refreshToken = await storage.read(key: 'refreshToken');
+  // 토큰 초기화
+  Future<void> _initializeTokens() async {
+    token = await _appBarApi.getAccessToken();
+    refreshToken = await _appBarApi.getRefreshToken();
 
-
-    dio.addResponseInterceptor('Content-Type', 'application/json');
-    dio.addResponseInterceptor('Authorization', 'Bear '+token.toString());
-    dio.addResponseInterceptor('cookie', refreshToken);
-    
+    if (token != null && refreshToken != null) {
+      await _appBarApi.addTokenInterceptors(token, refreshToken);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    dio.addErrorInterceptor(context);
-
-    // 과목리스트 저장
+    // 과목 리스트 저장
     List<Widget> menu_subject = [];
     subjects.forEach((subject) {
       menu_subject.add(
         ListTile(
           title: Text(subject, style: TextStyle(fontSize: 14.sp)),
           onTap: () {
-            // subject 별 이동 이벤트
+            // 과목 클릭 시 처리할 로직
           },
         ),
       );
     });
+
     return Drawer(
       child: Column(
         children: [
@@ -131,6 +122,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
               accountEmail: Text(email, style: TextStyle(fontSize: 14.sp)),
             ),
           ),
+          // 공지사항 메뉴
           ListTile(
             shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
             title: Text("공지사항", style: TextStyle(fontSize: 16.sp)),
@@ -163,6 +155,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 ],
               ),
             ),
+          // 성적 관리 메뉴
           ListTile(
             shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
             title: Text("성적관리", style: TextStyle(fontSize: 16.sp)),
@@ -184,7 +177,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
                   ListTile(
                     title: Text("성적조회", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
-                      // 성적조회 화면으로 이동
+                      // 성적 조회 화면으로 이동
                     },
                   ),
                   ListTile(
@@ -209,6 +202,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 ],
               ),
             ),
+          // 학원비 메뉴
           ListTile(
             shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
             title: Text("학원비", style: TextStyle(fontSize: 16.sp)),
@@ -229,32 +223,32 @@ class _MenuDrawerState extends State<MenuDrawer> {
                   ListTile(
                     title: Text("납부현황", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
-                      // 납부현황 화면으로 이동
+                      // 납부 현황 화면으로 이동
                     },
                   ),
                   ListTile(
                     title: Text("납부내역", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
-                      // 납부내역 화면으로 이동
+                      // 납부 내역 화면으로 이동
                     },
                   ),
                 ],
               ),
             ),
           Spacer(),
+          // 로그아웃 메뉴
           ListTile(
             title: Text("로그아웃", style: TextStyle(fontSize: 16.sp)),
-            onTap: () async{
-              // 로그아웃 처리
-              var response;
-              try{
-                response = await dio.post('/user/logout');
-                await storage.delete(key: "login"); // secure storage에 저장된 아이디,패스워드 값 지우기
-                await storage.delete(key: 'accessToken');
-                await storage.delete(key: 'refreshToken');
-                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context)=>MyApp()), (route) => false);
-              }catch(err){
-
+            onTap: () async {
+              try {
+                await _appBarApi.logout();
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => MyApp()),
+                      (route) => false,
+                );
+              } catch (err) {
+                // 오류 처리 로직
               }
             },
           ),

@@ -1,9 +1,8 @@
+import 'package:academy_manager/API/FindId_API.dart';
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
-import 'package:academy_manager/FindIdResultPage.dart';
-import 'package:academy_manager/MyDio.dart';
+import 'package:academy_manager/UI/FindIdResult_UI.dart';
+import 'package:academy_manager/API/FindId_API.dart';
 
 class FindIdPage extends StatefulWidget {
   @override
@@ -13,7 +12,7 @@ class FindIdPage extends StatefulWidget {
 class _FindIdPageState extends State<FindIdPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
-  final dio =new MyDio();
+  final FindIdApi findIdApi = FindIdApi();
 
   @override
   void initState() {
@@ -30,33 +29,15 @@ class _FindIdPageState extends State<FindIdPage> {
     }
 
     try {
-      Response response = await dio.post(
-        '/user/find-id',
-        data: {
-          'email': email,
-          'phone_number': phoneNumber,
-        },
+      String userId = await findIdApi.findId(email, phoneNumber);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => FindIdResultPage(userId: userId),
+        ),
       );
-
-      if (response.statusCode == 200) {
-        String userId = response.data['user_id'];
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => FindIdResultPage(userId: userId),
-          ),
-        );
-      }
-    } on DioError catch (error) {
-      if (error.response?.statusCode == 400) {
-        Fluttertoast.showToast(msg: error.response?.data['message']);
-      } else if (error.response?.statusCode == 404) {
-        Fluttertoast.showToast(msg: "해당하는 유저가 존재하지 않습니다.");
-      } else if (error.response?.statusCode == 500) {
-        Fluttertoast.showToast(msg: "서버에 오류가 발생했습니다. 다시 시도해주세요.");
-      } else {
-        Fluttertoast.showToast(msg: "예상치 못한 오류가 발생했습니다.");
-      }
+    } catch (error) {
+      Fluttertoast.showToast(msg: error.toString());
     }
   }
 
