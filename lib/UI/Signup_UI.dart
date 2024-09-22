@@ -1,10 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:academy_manager/API/Signup_API.dart';
-import 'package:email_validator/email_validator.dart';
 import 'package:academy_manager/UI/AfterSignup_UI.dart';
+import 'package:flutter/material.dart';
+import 'package:email_validator/email_validator.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:academy_manager/API/Signup_API.dart'; // API 관련 파일을 가져옴
 
 enum Role { STUDENT, PARENT }
 
@@ -16,7 +16,6 @@ class SignupPage extends StatefulWidget {
 }
 
 class _SignupPageState extends State<SignupPage> {
-  final SignupApi signupApi = SignupApi();
   late ScrollController _scrollControl = ScrollController();
   List<TextEditingController> controllers = [];
   final _formKey = GlobalKey<FormState>();
@@ -31,8 +30,11 @@ class _SignupPageState extends State<SignupPage> {
 
   DateTime initialDate = DateTime.now();
   static final storage = FlutterSecureStorage();
-  Map<String, String> info = {};
-  bool idck = false; // id 중복검사 여부 체크
+  Map<String, String> info = Map();
+
+  // 아이디 중복 확인 여부를 나타내는 상태
+  bool idck = false;
+
   Role role = Role.STUDENT;
   String? hintText = '학원초대키';
 
@@ -58,121 +60,6 @@ class _SignupPageState extends State<SignupPage> {
   static const mainColor = Color(0xff565D6D);
   static const backColor = Color(0xffD9D9D9);
 
-  Future<void> _checkId() async {
-    if (controllers[1].text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("아이디 값을 입력하세요", textAlign: TextAlign.center),
-          duration: Duration(seconds: 1),
-        ),
-      );
-      return;
-    }
-
-    try {
-      var response = await signupApi.checkId(controllers[1].text);
-      if (response.statusCode == 200) {
-        var responseData = response.data;
-        if (responseData['message'] == '사용 가능한 아이디입니다.') {
-          setState(() {
-            idck = true;
-          });
-          Fluttertoast.showToast(msg: "사용 가능한 아이디입니다.");
-        } else {
-          Fluttertoast.showToast(msg: "중복된 아이디입니다.");
-        }
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "아이디 중복 확인 중 오류가 발생했습니다.");
-    }
-  }
-
-  Future<void> _signup() async {
-    if (!idck) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("아이디 중복확인을 누르세요", textAlign: TextAlign.center),
-          duration: Duration(seconds: 1),
-        ),
-      );
-      FocusScope.of(context).requestFocus(_idFocusNode);
-      return;
-    }
-
-    if (_formKey.currentState!.validate()) {
-      List<String> values = controllers.map((c) => c.text).toList();
-
-      try {
-        var signupData = {
-          "user_id": values[1],
-          "email": values[3],
-          "user_name": values[0],
-          "password": values[2],
-          "phone_number": values[4],
-          "birth_date": values[5] + "T00:00:00Z",
-          "role": (role == Role.STUDENT) ? "STUDENT" : "PARENT"
-        };
-
-        var response = await signupApi.signupUser(signupData);
-
-        if (response.statusCode == 201) {
-          if (values[6].isEmpty) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AfterSignUp(name: values[0], role: 1, isKey: false),
-              ),
-                  (route) => false,
-            );
-          } else {
-            await _registerAcademy(values);
-          }
-        }
-      } catch (e) {
-        Fluttertoast.showToast(msg: "회원가입 중 오류가 발생했습니다.");
-      }
-    }
-  }
-
-  Future<void> _registerAcademy(List<String> values) async {
-    try {
-      var loginResponse = await signupApi.loginUser(values[1], values[2]);
-      String token = loginResponse.data['accessToken'];
-
-      await storage.write(key: 'accessToken', value: token);
-
-      // 'set-cookie' 헤더가 null이 아닌지 체크한 후 접근
-      if (loginResponse.headers['set-cookie'] != null && loginResponse.headers['set-cookie']!.isNotEmpty) {
-        await storage.write(key: 'refreshToken', value: loginResponse.headers['set-cookie']![0]);
-      } else {
-        Fluttertoast.showToast(msg: "로그인 후 쿠키 정보를 찾을 수 없습니다.");
-        return;
-      }
-
-      await storage.write(key: 'id', value: values[1]);
-
-      var registerResponse = await signupApi.registerAcademy(
-        values[1],
-        values[6],
-        (role == Role.STUDENT) ? "STUDENT" : "PARENT",
-      );
-
-      if (registerResponse.statusCode == 201) {
-        Fluttertoast.showToast(msg: "회원가입 및 학원 등록 요청이 완료되었습니다.");
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => AfterSignUp(name: values[0], role: 1, isKey: true),
-          ),
-              (route) => false,
-        );
-      }
-    } catch (e) {
-      Fluttertoast.showToast(msg: "학원 등록 요청 중 오류가 발생했습니다.");
-    }
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -190,11 +77,20 @@ class _SignupPageState extends State<SignupPage> {
                   children: [
                     Padding(
                       padding: EdgeInsets.fromLTRB(0, 0, 0, 10.h),
-                      child: Text("Sign Up", style: TextStyle(fontSize: 40.sp)),
+                      child: Text(
+                        "Sign Up",
+                        style: TextStyle(fontSize: 40.sp),
+                      ),
                     ),
-                    _buildRoleSelection(),
-                    _buildSignupForm(),
-                    _buildSignupButton(),
+                    _buildRoleRadioButtons(),
+                    _buildNameField(),
+                    _buildIDField(context),
+                    _buildPasswordFields(),
+                    _buildEmailField(),
+                    _buildPhoneField(),
+                    _buildBirthField(),
+                    _buildInviteKeyField(),
+                    _buildSignupButton(context),
                   ],
                 ),
               ),
@@ -205,7 +101,7 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  Widget _buildRoleSelection() {
+  Widget _buildRoleRadioButtons() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -243,141 +139,314 @@ class _SignupPageState extends State<SignupPage> {
     );
   }
 
-  Widget _buildSignupForm() {
-    return Column(
-      children: [
-        SizedBox(
-          width: 342.w,
-          child: TextFormField(
-            controller: controllers[0],
-            decoration: const InputDecoration(hintText: "이름"),
-            textInputAction: TextInputAction.next,
-            onFieldSubmitted: (_) => FocusScope.of(context).requestFocus(_idFocusNode),
-          ),
+  Widget _buildNameField() {
+    return SizedBox(
+      width: 342.w,
+      height: 51.h,
+      child: TextFormField(
+        autofocus: true,
+        controller: controllers[0],
+        validator: (value) {
+          if (value!.isEmpty) {
+            return "이름을 입력하세요";
+          } else {
+            return null;
+          }
+        },
+        decoration: const InputDecoration(
+          hintText: "이름",
         ),
-        SizedBox(height: 10),
-        Row(
+        textInputAction: TextInputAction.next,
+        onFieldSubmitted: (_) {
+          FocusScope.of(context).requestFocus(_idFocusNode);
+        },
+        onSaved: (value) {
+          info["name"] = value!;
+        },
+      ),
+    );
+  }
+
+  Widget _buildIDField(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(top: 20.h),  // 명시적으로 간격을 추가
+      child: SizedBox(
+        width: 350.w,
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
               width: 230.w,
+              height: 51.h,
               child: TextFormField(
                 controller: controllers[1],
-                decoration: const InputDecoration(hintText: "ID"),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return "아이디를 입력하세요";
+                  } else {
+                    return null;
+                  }
+                },
+                decoration: const InputDecoration(
+                  hintText: "ID",
+                ),
                 focusNode: _idFocusNode,
+                onFieldSubmitted: (_) {
+                  FocusScope.of(context).requestFocus(_pw1FocusNode);
+                },
               ),
             ),
-            SizedBox(width: 10),
+            10.horizontalSpace,
             SizedBox(
               width: 106.w,
+              height: 51.h,
               child: ElevatedButton(
-                onPressed: _checkId,
-                child: Text("중복확인", style: TextStyle(fontSize: 18.spMin)),
-                style: ElevatedButton.styleFrom(backgroundColor: mainColor),
+                onPressed: () async {
+                  await SignupPageAPI.checkDuplicateID(
+                      context, controllers[1].text, (bool isValidID) {
+                    setState(() {
+                      idck = isValidID; // idck 상태를 업데이트
+                    });
+                  });
+                },
+                child: Text(
+                  "중복확인",
+                  style: TextStyle(
+                    fontSize: 18.spMin,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: mainColor,
+                ),
               ),
             ),
           ],
         ),
-        SizedBox(height: 10),
-        _buildPasswordFields(),
-        SizedBox(height: 10),
-        _buildAdditionalFields(),
-      ],
+      ),
     );
   }
+
 
   Widget _buildPasswordFields() {
     return Column(
       children: [
         SizedBox(
           width: 342.w,
-          child: TextFormField(
-            controller: controllers[2],
-            decoration: const InputDecoration(hintText: "비밀번호"),
-            focusNode: _pw1FocusNode,
-            obscureText: true,
+          child: Padding(
+            padding: EdgeInsets.only(top: 25.h),
+            child: TextFormField(
+              controller: controllers[2],
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "비밀번호를 입력하세요";
+                } else {
+                  return null;
+                }
+              },
+              decoration: const InputDecoration(
+                hintText: "비밀번호",
+              ),
+              focusNode: _pw1FocusNode,
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_pw2FocusNode);
+              },
+              obscureText: true,
+              keyboardType: TextInputType.visiblePassword,
+            ),
           ),
         ),
-        SizedBox(height: 10),
         SizedBox(
           width: 342.w,
-          child: TextFormField(
-            controller: controllers[2],
-            decoration: const InputDecoration(hintText: "비밀번호 확인"),
-            focusNode: _pw2FocusNode,
-            obscureText: true,
+          child: Padding(
+            padding: EdgeInsets.only(top: 32.h),
+            child: TextFormField(
+              validator: (value) {
+                if (value!.isEmpty) {
+                  return "비밀번호를 입력하세요";
+                } else if (value.toString() != controllers[2].text) {
+                  return "두 비밀번호가 다릅니다.";
+                } else {
+                  return null;
+                }
+              },
+              decoration: const InputDecoration(
+                hintText: "비밀번호 확인",
+              ),
+              focusNode: _pw2FocusNode,
+              onFieldSubmitted: (_) {
+                FocusScope.of(context).requestFocus(_emailFocusNode);
+              },
+              obscureText: true,
+              keyboardType: TextInputType.visiblePassword,
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildAdditionalFields() {
-    return Column(
-      children: [
-        // Email
-        SizedBox(
-          width: 342.w,
-          child: TextFormField(
-            controller: controllers[3],
-            decoration: const InputDecoration(hintText: "Email"),
-            focusNode: _emailFocusNode,
-          ),
-        ),
-        // Phone Number
-        SizedBox(
-          width: 342.w,
-          child: TextFormField(
-            controller: controllers[4],
-            decoration: const InputDecoration(hintText: "전화번호"),
-            focusNode: _phoneFocusNode,
-          ),
-        ),
-        // Birth Date
-        SizedBox(
-          width: 342.w,
-          child: TextFormField(
-            controller: controllers[5],
-            readOnly: true,
-            decoration: const InputDecoration(hintText: "생년월일"),
-            focusNode: _birthFocusNode,
-            onTap: () async {
-              final DateTime? dateTime = await showDatePicker(
-                context: context,
-                initialDate: initialDate,
-                firstDate: DateTime(1000),
-                lastDate: DateTime(3000),
-              );
-              if (dateTime != null) {
-                controllers[5].text = dateTime.toString().split(' ')[0];
-              }
-            },
-          ),
-        ),
-        // Academy Key
-        SizedBox(
-          width: 342.w,
-          child: TextFormField(
-            controller: controllers[6],
-            decoration: InputDecoration(hintText: hintText),
-            focusNode: _keyFocusNode,
-          ),
-        ),
-      ],
-    );
-  }
+  // 나머지 코드는 동일합니다.
 
-  Widget _buildSignupButton() {
+
+  Widget _buildEmailField() {
     return SizedBox(
       width: 342.w,
-      child: ElevatedButton(
-        onPressed: _signup,
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Text("회원가입", style: TextStyle(fontSize: 24.sp)),
+      child: Padding(
+        padding: EdgeInsets.only(top: 25.h),
+        child: TextFormField(
+          controller: controllers[3],
+          validator: (value) {
+            if (value!.isEmpty) {
+              return "email을 입력하세요";
+            } else if (!EmailValidator.validate(value!)) {
+              return "올바른 형식의 email을 입력하세요";
+            } else {
+              return null;
+            }
+          },
+          decoration: const InputDecoration(
+            hintText: "Email",
+          ),
+          focusNode: _emailFocusNode,
+          onFieldSubmitted: (_) {
+            FocusScope.of(context).requestFocus(_phoneFocusNode);
+          },
+          keyboardType: TextInputType.emailAddress,
         ),
-        style: ElevatedButton.styleFrom(backgroundColor: mainColor),
+      ),
+    );
+  }
+
+  Widget _buildPhoneField() {
+    return SizedBox(
+        width: 342.w,
+        child: Padding(
+        padding: EdgeInsets.only(top: 25.h),
+    child: TextFormField(
+    controller: controllers[4],
+    validator: (value) {
+    if (value!.isEmpty) {
+    return "전화번호를 입력하세요";
+    } else if (!RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$')
+        .hasMatch(value.toString())) {
+    return "올바른 형식의 휴대폰번호를 입력하세요";
+    } else
+    return null;
+    },
+    decoration: const InputDecoration(
+    hintText: "전화번호",
+    ),
+      focusNode: _phoneFocusNode,
+      onFieldSubmitted: (_) {
+        FocusScope.of(context).requestFocus(_birthFocusNode);
+      },
+      keyboardType: TextInputType.phone,
+    ),
+        ),
+    );
+  }
+
+  Widget _buildBirthField() {
+    return SizedBox(
+      width: 342.w,
+      child: Padding(
+        padding: EdgeInsets.only(top: 25.h),
+        child: TextFormField(
+          autocorrect: true,
+          controller: controllers[5],
+          readOnly: true,
+          validator: (value) {
+            if (value!.isEmpty) {
+              return "생년월일을 입력하세요";
+            } else {
+              return null;
+            }
+          },
+          decoration: const InputDecoration(
+            hintText: "생년월일",
+          ),
+          focusNode: _birthFocusNode,
+          onTap: () async {
+            final DateTime? dateTime = await showDatePicker(
+              context: context,
+              initialDate: initialDate,
+              firstDate: DateTime(1000),
+              lastDate: DateTime(3000),
+            );
+            if (dateTime != null) {
+              setState(() {
+                initialDate = dateTime;
+              });
+              controllers[5].text = dateTime.toString().split(' ')[0];
+            } else {
+              controllers[5].text = "";
+            }
+          },
+          onFieldSubmitted: (_) {
+            FocusScope.of(context).requestFocus(_keyFocusNode);
+          },
+          keyboardType: TextInputType.phone,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInviteKeyField() {
+    return SizedBox(
+      width: 342.w,
+      child: Padding(
+        padding: EdgeInsets.only(top: 25.h),
+        child: TextFormField(
+          validator: (value) {
+            if (role == Role.PARENT && value!.isEmpty) {
+              return "학생 아이디를 입력하세요";
+            } else {
+              return null;
+            }
+          },
+          controller: controllers[6],
+          decoration: InputDecoration(
+            hintText: hintText,
+          ),
+          focusNode: _keyFocusNode,
+          onFieldSubmitted: (_) {},
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSignupButton(BuildContext context) {
+    return SizedBox(
+      width: 342.w,
+      child: Padding(
+        padding: EdgeInsets.only(top: 25.h),
+        child: ElevatedButton(
+          onPressed: () async {
+            await SignupPageAPI.signup(
+              context,
+              controllers,
+              role,
+              _formKey,
+              idck,
+              storage,
+              setState,
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              "회원가입",
+              style: TextStyle(
+                fontSize: 24.sp,
+              ),
+            ),
+          ),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: mainColor,
+          ),
+        ),
       ),
     );
   }
 }
+
