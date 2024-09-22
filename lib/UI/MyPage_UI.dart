@@ -29,14 +29,15 @@ class _MyPageState extends State<MyPage> {
     await myPageApi.initTokens();
 
     // id가 null인지 확인
-    String? id = await MyPageApi.storage.read(key: 'id');
+    String? userId = await MyPageApi.storage.read(key: 'id');
 
-    if (id != null) {
+    if (userId != null) {
       // 사용자 정보 및 프로필 이미지 가져오기
-      var userInfo = await myPageApi.fetchUserInfo(id);
-      var profileImage = await myPageApi.downloadUserProfileImage(id);
+      var userInfo = await myPageApi.fetchUserInfo(userId);
+      var profileImage = await myPageApi.downloadUserProfileImage(userId);
 
       setState(() {
+        id = userId; // id 반영
         name = userInfo['user_name'];
         email = userInfo['email'];
         phone = userInfo['phone_number'];
@@ -47,6 +48,7 @@ class _MyPageState extends State<MyPage> {
       Fluttertoast.showToast(msg: "ID를 찾을 수 없습니다.");
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +62,14 @@ class _MyPageState extends State<MyPage> {
           children: [
             Center(
               child: CircleAvatar(
-                foregroundImage: (file != null) ? FileImage(file!) : AssetImage('img/default.png') as ImageProvider,
+                foregroundImage: (file != null && file!.existsSync())
+                    ? FileImage(file!)
+                    : AssetImage('img/default.png') as ImageProvider, // 기본 이미지 경로
                 radius: 60.r,
                 backgroundColor: Colors.grey[300],
               ),
             ),
+
             SizedBox(height: 30.h),
             _buildUserInfo(),
             Spacer(),

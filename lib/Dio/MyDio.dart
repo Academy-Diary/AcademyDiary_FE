@@ -9,7 +9,7 @@ class MyDio{
   MyDio() {
     // 기본 정보
     dio.options.baseUrl =
-    'http://192.168.199.180:8000'; //개발 중 주소는 내 아이피 localhost는 x
+    'http://192.168.199.188:8000'; //개발 중 주소는 내 아이피 localhost는 x
     dio.options.connectTimeout = 5000; // 5s
     dio.options.receiveTimeout = 3000;
     dio.options.headers =

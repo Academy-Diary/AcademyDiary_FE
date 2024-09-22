@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/main.dart';
 import 'package:academy_manager/API/AppSettings_API.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:dio/dio.dart';
 
 class AppSettings extends StatefulWidget {
   @override
@@ -12,14 +13,15 @@ class AppSettings extends StatefulWidget {
 
 class _AppSettingsState extends State<AppSettings> {
   String? id, accessToken;
-  String name = "", email = "";
+  String name = "",
+      email = "";
   final AppSettingsApi appSettingsApi = AppSettingsApi();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeData();  // 사용자 정보 로드
+      _initializeData(); // 사용자 정보 로드
     });
   }
 
@@ -84,7 +86,8 @@ class _AppSettingsState extends State<AppSettings> {
     return ExpansionTile(
       title: Text(
         "약관",
-        style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold), // 폰트 크기 증가
+        style: TextStyle(
+            fontSize: 18.sp, fontWeight: FontWeight.bold), // 폰트 크기 증가
       ),
       children: <Widget>[
         _buildTermsTile("서비스 이용약관"),
@@ -133,9 +136,27 @@ class _AppSettingsState extends State<AppSettings> {
               (route) => false,
         );
       } catch (err) {
-        print(err);
-        Navigator.pop(context);  // 실패 시 이전 페이지로 이동
+        // 에러가 발생했을 때 DioError로 캐스팅하여 처리
+        if (err is DioError) {
+          final errorMessage = err.response?.data['message'] ??
+              "탈퇴에 실패했습니다."; // 서버로부터 받은 에러 메시지 출력
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMessage, textAlign: TextAlign.center),
+              backgroundColor: Colors.red, // 배경색 빨간색으로 설정
+            ),
+          );
+        } else {
+          // DioError 외의 에러 처리
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("알 수 없는 오류가 발생했습니다.", textAlign: TextAlign.center),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
 }
+
