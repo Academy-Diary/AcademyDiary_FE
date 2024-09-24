@@ -2,6 +2,7 @@ import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:academy_manager/API/AppBar_API.dart';
+import 'package:academy_manager/UI/PushList_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/main.dart';
@@ -27,6 +28,10 @@ class MyAppBar extends StatelessWidget {
           icon: Icon(Icons.notifications),
           onPressed: () {
             // 알림 버튼 클릭 시 처리할 로직
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PushList())
+            );
           },
         ),
         IconButton(
