@@ -15,7 +15,7 @@ class MyPage extends StatefulWidget {
 class _MyPageState extends State<MyPage> {
   final MyPageApi myPageApi = MyPageApi();
   File? file;
-  String? name = "", id = "", email = "", phone = "";
+  String? name = "", id = "", email = "", phone = "", role = "";
 
   @override
   void initState() {
@@ -41,6 +41,7 @@ class _MyPageState extends State<MyPage> {
         name = userInfo['user_name'];
         email = userInfo['email'];
         phone = userInfo['phone_number'];
+        role = userInfo['role']== "STUDENT"? "학생" : "학부모";
         file = profileImage;
       });
     } else {
@@ -88,7 +89,7 @@ class _MyPageState extends State<MyPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("name: $name", style: TextStyle(fontSize: 18.sp)),
+          Text("name: $name($role)", style: TextStyle(fontSize: 18.sp)),
           SizedBox(height: 10.h),
           Text("ID: $id", style: TextStyle(fontSize: 18.sp)),
           SizedBox(height: 10.h),
