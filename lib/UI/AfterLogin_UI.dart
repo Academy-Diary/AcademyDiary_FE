@@ -16,7 +16,7 @@ class AfterLoginPage extends StatelessWidget {
 
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: name, email: email, subjects: ["미적분", "영어", "국어"]),
+      drawer: MenuDrawer(name: name, email: email, subjects: []), // 수정된 subjects 리스트는 AppBar에서 불러올 예정
       body: Padding(
         padding: EdgeInsets.all(16.0.w),
         child: Column(
@@ -24,7 +24,7 @@ class AfterLoginPage extends StatelessWidget {
           children: [
             Center(
               child: Text(
-                name+'님 환영합니다',
+                name + '님 환영합니다',
                 style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
               ),
             ),
@@ -44,7 +44,7 @@ class AfterLoginPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => Attendance(name: name),
+                        builder: (context) => Attendance(name: name),
                       ),
                     );
                   },
