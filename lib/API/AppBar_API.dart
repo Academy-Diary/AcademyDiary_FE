@@ -33,6 +33,14 @@ class AppbarApi {
     }
   }
 
+
+  Future<Map<String, dynamic>> getInfo() async{
+    Map<String, dynamic> ret_value = {};
+    ret_value['user_name'] = await storage.read(key: 'user_name');
+    ret_value['email'] = await storage.read(key: 'email');
+    return ret_value;
+  }
+
   Future<String?> getAccessToken() async {
     return await storage.read(key: 'accessToken');
   }

@@ -1,7 +1,11 @@
 import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
+import 'package:academy_manager/UI/BillList_UI.dart';
+import 'package:academy_manager/UI/Bill_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
-import 'package:academy_manager/API/AppBar_API.dart';
+import 'package:academy_manager/UI/NoticeList_UI.dart';
+import 'package:academy_manager/UI/ScoreGraph_UI.dart';
+import 'package:academy_manager/UI/ViewScore_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/main.dart';
@@ -53,18 +57,18 @@ class MyAppBar extends StatelessWidget {
 class MenuDrawer extends StatefulWidget {
   final String name;
   final String email;
-  final List<String> subjects;
+  List<String>? subjects;
 
-  const MenuDrawer({super.key, required this.name, required this.email, required this.subjects});
+  MenuDrawer({super.key, this.name="", this.email="", this.subjects});
 
   @override
-  State<MenuDrawer> createState() => _MenuDrawerState(name: name, email: email, subjects: subjects);
+  State<MenuDrawer> createState() => _MenuDrawerState(subjects: subjects);
 }
 
 class _MenuDrawerState extends State<MenuDrawer> {
-  final String name;
-  final String email;
-  final List<String> subjects;
+  String? name;
+  String? email;
+  List<String>? subjects;
   bool isNoticeClicked = false;
   bool isGradeClicked = false;
   bool isExpenseClicked = false;
@@ -74,36 +78,43 @@ class _MenuDrawerState extends State<MenuDrawer> {
 
   final AppbarApi _appBarApi= AppbarApi(); // AuthService 객체 생성
 
-  _MenuDrawerState({ required this.name, required this.email, required this.subjects });
+  _MenuDrawerState({this.subjects});
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeTokens();
+      _initialize();
     });
   }
 
-  // 토큰 초기화
-  Future<void> _initializeTokens() async {
+  // 토큰 초기화 && Drawer 상단 이름,이메일
+  Future<void> _initialize() async {
     token = await _appBarApi.getAccessToken();
     refreshToken = await _appBarApi.getRefreshToken();
 
     if (token != null && refreshToken != null) {
       await _appBarApi.addTokenInterceptors(token, refreshToken);
     }
+
+    var info = await _appBarApi.getInfo();
+    setState(() {
+      name = info['user_name'];
+      email = info['email'];
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     // 과목 리스트 저장
     List<Widget> menu_subject = [];
-    subjects.forEach((subject) {
+    subjects!.forEach((subject) {
       menu_subject.add(
         ListTile(
           title: Text(subject, style: TextStyle(fontSize: 14.sp)),
           onTap: () {
             // 과목 클릭 시 처리할 로직
+            Navigator.push(context, MaterialPageRoute(builder: (builder)=> ScoreGraph(subjectName: subject)));
           },
         ),
       );
@@ -118,8 +129,8 @@ class _MenuDrawerState extends State<MenuDrawer> {
               decoration: BoxDecoration(
                 color: Color(0xFF565D6D),
               ),
-              accountName: Text(name, style: TextStyle(fontSize: 18.sp)),
-              accountEmail: Text(email, style: TextStyle(fontSize: 14.sp)),
+              accountName: Text(name.toString(), style: TextStyle(fontSize: 18.sp)),
+              accountEmail: Text(email.toString(), style: TextStyle(fontSize: 14.sp)),
             ),
           ),
           // 공지사항 메뉴
@@ -144,12 +155,14 @@ class _MenuDrawerState extends State<MenuDrawer> {
                     title: Text("학원공지", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 학원 공지 화면으로 이동
+                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>NoticeList()));
                     },
                   ),
                   ListTile(
                     title: Text("수업공지", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 수업 공지 화면으로 이동
+                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>NoticeList(isAcademy: false,)));
                     },
                   ),
                 ],
@@ -178,6 +191,10 @@ class _MenuDrawerState extends State<MenuDrawer> {
                     title: Text("성적조회", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 성적 조회 화면으로 이동
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (builder)=>ViewScore())
+                      );
                     },
                   ),
                   ListTile(
@@ -221,15 +238,17 @@ class _MenuDrawerState extends State<MenuDrawer> {
               child: Column(
                 children: [
                   ListTile(
-                    title: Text("납부현황", style: TextStyle(fontSize: 15.sp)),
+                    title: Text("청구서 조회", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
-                      // 납부 현황 화면으로 이동
+                      // 청구서 조회 화면으로 이동
+                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>Bill()));
                     },
                   ),
                   ListTile(
-                    title: Text("납부내역", style: TextStyle(fontSize: 15.sp)),
+                    title: Text("납부 현황", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
-                      // 납부 내역 화면으로 이동
+                      // 납부 현황 화면으로 이동
+                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>BillList()));
                     },
                   ),
                 ],

@@ -1,43 +1,68 @@
+import 'package:academy_manager/API/NoticeList_API.dart';
 import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/UI/NoticeDetail_UI.dart';
 
 class NoticeList extends StatefulWidget {
+  bool? isAcademy; //학원 공지 여부 true: 학원공지, false: 수업공지
+  NoticeList({super.key, this.isAcademy=true}); // isAcademy의 기본값은 true,
   @override
-  _NoticeListState createState() => _NoticeListState();
+  _NoticeListState createState() => _NoticeListState(this.isAcademy);
 }
 
 class _NoticeListState extends State<NoticeList> {
-  String _selectedCategory = '학원공지';
+  bool? isAcademy;
+  String name="" , email = "";
+  _NoticeListState(this.isAcademy);
+  String _selectedCategory = '수업1'; // 기본 선택값
+  final NoticelistApi _ntl = NoticelistApi();
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _initData();
+  }
+
+  _initData()async{
+    String? id = await _ntl.getId();
+    String? accessToken = await _ntl.getAccessToken();
+    var info = await _ntl.fetchUserInfo(id!, accessToken!);
+    setState(() {
+      name = info['user_name'];
+      email = info['email'];
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
+      drawer: MenuDrawer(name: name, email: email, subjects: ['수학']),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            DropdownButton<String>(
-              value: _selectedCategory,
-              items: <String>['학원공지', '수업공지'].map((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value, style: TextStyle(fontSize: 18.sp)),
-                );
-              }).toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  _selectedCategory = newValue!;
-                });
-              },
-            ),
+            if(!isAcademy!)
+              DropdownButton<String>(
+                value: _selectedCategory,
+                items: <String>['수업1', '수업2'].map((String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value, style: TextStyle(fontSize: 18.sp)),
+                  );
+                }).toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedCategory = newValue!;
+                  });
+                },
+              ),
             Expanded(
               child: ListView(
-                children: _selectedCategory == '학원공지'
+                children: isAcademy==true
                     ? _buildAcademyNotices()
                     : _buildClassNotices(),
               ),

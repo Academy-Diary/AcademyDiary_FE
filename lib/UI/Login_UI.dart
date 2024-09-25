@@ -189,6 +189,7 @@ class _LoginpageState extends State<LoginPage> {
     String phone = response.data['user']['phone_number'];
 
     if (response.data['userStatus'] != null && response.data['userStatus']['status'] == "APPROVED") {
+      loginApi.saveUserInfo(response.data); // 이름, 이메일, 전화번호를 secure_storage에 저장
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
