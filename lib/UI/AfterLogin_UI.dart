@@ -16,7 +16,7 @@ class AfterLoginPage extends StatelessWidget {
 
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: name, email: email, subjects: []), // 수정된 subjects 리스트는 AppBar에서 불러올 예정
+      drawer: MenuDrawer(), // 수정된 subjects 리스트는 AppBar에서 불러올 예정
       body: Padding(
         padding: EdgeInsets.all(16.0.w),
         child: Column(

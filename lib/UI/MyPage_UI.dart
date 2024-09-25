@@ -55,7 +55,7 @@ class _MyPageState extends State<MyPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar(isSettings: true).build(context),
-      drawer: MenuDrawer(name: name.toString(), email: email.toString(), subjects: ['수학']),
+      drawer: MenuDrawer(),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(

@@ -55,11 +55,8 @@ class MyAppBar extends StatelessWidget {
 }
 
 class MenuDrawer extends StatefulWidget {
-  final String name;
-  final String email;
-  List<String>? subjects; // 과목 이름의 리스트
 
-  MenuDrawer({super.key, this.name = "", this.email = "", this.subjects});
+  MenuDrawer();
 
   @override
   State<MenuDrawer> createState() => _MenuDrawerState();

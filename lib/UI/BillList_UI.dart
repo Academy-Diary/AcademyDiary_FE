@@ -31,7 +31,7 @@ class _BillListState extends State<BillList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(subjects: ['미적분', '영어', '국어'],),
+      drawer: MenuDrawer(),
       body: SafeArea(
         child: Center(
           child: Padding(

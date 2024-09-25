@@ -48,7 +48,7 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar(isSettings: true).build(context),
-      drawer: MenuDrawer(name: name, email: email, subjects: ['수학']),
+      drawer: MenuDrawer(),
       body: Padding(
         padding: EdgeInsets.all(16.w),
         child: Column(
