@@ -192,8 +192,8 @@ class _MenuDrawerState extends State<MenuDrawer> {
                     onTap: () {
                       // 성적 조회 화면으로 이동
                       Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (builder)=>ViewScore())
+                          context,
+                          MaterialPageRoute(builder: (builder)=>ViewScore())
                       );
                     },
                   ),

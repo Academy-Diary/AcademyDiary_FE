@@ -1,4 +1,5 @@
 import 'package:academy_manager/UI/AppBar_UI.dart';
+import 'package:academy_manager/UI/Attendance_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'NoticeDetail_UI.dart';  // NoticeDetail 화면을 import
@@ -39,7 +40,14 @@ class AfterLoginPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12.0.r),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => Attendance(name: name),
+                      ),
+                    );
+                  },
                   child: Text(
                     '출석인증하기',
                     style: TextStyle(fontSize: 22.sp, color: Colors.white),
