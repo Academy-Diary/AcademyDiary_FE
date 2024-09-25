@@ -7,7 +7,7 @@ class NoticeDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: '현우진', email: 'example@gmail.com', subjects: ['수학']),
+      drawer: MenuDrawer(),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(

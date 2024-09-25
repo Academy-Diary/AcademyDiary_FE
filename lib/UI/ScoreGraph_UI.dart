@@ -36,7 +36,7 @@ class _ScoreGraphState extends State<ScoreGraph> {
     ScreenUtil.init(context);
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: "현우진", email: "aaa@test.com", subjects: ["미적분", "영어", "국어"],),
+      drawer: MenuDrawer(),
       body: SafeArea(
           child: Padding(
             padding: EdgeInsets.all(16.w),

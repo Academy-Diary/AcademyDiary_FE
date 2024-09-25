@@ -39,7 +39,7 @@ class _NoticeListState extends State<NoticeList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: name, email: email, subjects: ['수학']),
+      drawer: MenuDrawer(),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(

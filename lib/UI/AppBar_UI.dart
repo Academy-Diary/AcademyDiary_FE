@@ -55,30 +55,26 @@ class MyAppBar extends StatelessWidget {
 }
 
 class MenuDrawer extends StatefulWidget {
-  final String name;
-  final String email;
-  List<String>? subjects;
 
-  MenuDrawer({super.key, this.name="", this.email="", this.subjects});
+  MenuDrawer();
 
   @override
-  State<MenuDrawer> createState() => _MenuDrawerState(subjects: subjects);
+  State<MenuDrawer> createState() => _MenuDrawerState();
 }
 
 class _MenuDrawerState extends State<MenuDrawer> {
   String? name;
   String? email;
-  List<String>? subjects;
+  List<Map<String, dynamic>> subjects = [];  // 수강 중인 과목을 리스트로 저장
   bool isNoticeClicked = false;
   bool isGradeClicked = false;
   bool isExpenseClicked = false;
   bool isSubjectClicked = false;
   String? token;
   String? refreshToken;
+  String? userId;  // userId 추가
 
-  final AppbarApi _appBarApi= AppbarApi(); // AuthService 객체 생성
-
-  _MenuDrawerState({this.subjects});
+  final AppbarApi _appBarApi = AppbarApi(); // AuthService 객체 생성
 
   @override
   void initState() {
@@ -88,10 +84,11 @@ class _MenuDrawerState extends State<MenuDrawer> {
     });
   }
 
-  // 토큰 초기화 && Drawer 상단 이름,이메일
+  // 토큰 초기화 && Drawer 상단 이름, 이메일
   Future<void> _initialize() async {
     token = await _appBarApi.getAccessToken();
     refreshToken = await _appBarApi.getRefreshToken();
+    userId = await _appBarApi.getUserId();  // userId 가져오기
 
     if (token != null && refreshToken != null) {
       await _appBarApi.addTokenInterceptors(token, refreshToken);
@@ -102,23 +99,54 @@ class _MenuDrawerState extends State<MenuDrawer> {
       name = info['user_name'];
       email = info['email'];
     });
+
+    // 과목 리스트 불러오기
+    await _loadSubjects();
+  }
+
+  // **수강 중인 과목 불러오기**
+  Future<void> _loadSubjects() async {
+    if (userId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('로그인 정보가 유효하지 않습니다.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      print("Fetching subjects for userId: $userId");
+      List<Map<String, dynamic>> fetchedSubjects = await _appBarApi.fetchSubjects(userId!);
+      setState(() {
+        subjects = fetchedSubjects;  // 수강 중인 과목 리스트를 업데이트
+      });
+    } catch (err) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("과목 불러오기 실패: $err"),  // 구체적인 에러 메시지 출력
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     // 과목 리스트 저장
-    List<Widget> menu_subject = [];
-    subjects!.forEach((subject) {
-      menu_subject.add(
-        ListTile(
-          title: Text(subject, style: TextStyle(fontSize: 14.sp)),
-          onTap: () {
-            // 과목 클릭 시 처리할 로직
-            Navigator.push(context, MaterialPageRoute(builder: (builder)=> ScoreGraph(subjectName: subject)));
-          },
-        ),
+    List<Widget> menu_subject = subjects.map((subject) {
+      return ListTile(
+        title: Text(subject['lecture_name'], style: TextStyle(fontSize: 14.sp)),
+        onTap: () {
+          // 과목 클릭 시 처리할 로직
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (builder) => ScoreGraph(subjectName: subject['lecture_name'])),
+          );
+        },
       );
-    });
+    }).toList();
 
     return Drawer(
       child: Column(
@@ -155,14 +183,14 @@ class _MenuDrawerState extends State<MenuDrawer> {
                     title: Text("학원공지", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 학원 공지 화면으로 이동
-                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>NoticeList()));
+                      Navigator.push(context, MaterialPageRoute(builder: (builder) => NoticeList()));
                     },
                   ),
                   ListTile(
                     title: Text("수업공지", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 수업 공지 화면으로 이동
-                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>NoticeList(isAcademy: false,)));
+                      Navigator.push(context, MaterialPageRoute(builder: (builder) => NoticeList(isAcademy: false)));
                     },
                   ),
                 ],
@@ -193,17 +221,21 @@ class _MenuDrawerState extends State<MenuDrawer> {
                       // 성적 조회 화면으로 이동
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (builder)=>ViewScore())
+                        MaterialPageRoute(builder: (builder) => ViewScore()),
                       );
                     },
                   ),
                   ListTile(
                     shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
                     title: Text("강의목록", style: TextStyle(fontSize: 15.sp)),
-                    onTap: () {
+                    onTap: () async {
                       setState(() {
                         isSubjectClicked = !isSubjectClicked;
                       });
+
+                      if (isSubjectClicked) {
+                        await _loadSubjects();  // 강의 목록 클릭 시 과목 조회
+                      }
                     },
                     trailing: !isSubjectClicked
                         ? Icon(Icons.arrow_drop_down)
@@ -241,14 +273,14 @@ class _MenuDrawerState extends State<MenuDrawer> {
                     title: Text("청구서 조회", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 청구서 조회 화면으로 이동
-                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>Bill()));
+                      Navigator.push(context, MaterialPageRoute(builder: (builder) => Bill()));
                     },
                   ),
                   ListTile(
                     title: Text("납부 현황", style: TextStyle(fontSize: 15.sp)),
                     onTap: () {
                       // 납부 현황 화면으로 이동
-                      Navigator.push(context, MaterialPageRoute(builder: (builder)=>BillList()));
+                      Navigator.push(context, MaterialPageRoute(builder: (builder) => BillList()));
                     },
                   ),
                 ],
