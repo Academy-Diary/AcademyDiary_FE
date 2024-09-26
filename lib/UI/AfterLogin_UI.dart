@@ -1,4 +1,5 @@
 import 'package:academy_manager/UI/AppBar_UI.dart';
+import 'package:academy_manager/UI/Attendance_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'NoticeDetail_UI.dart';  // NoticeDetail 화면을 import
@@ -15,7 +16,7 @@ class AfterLoginPage extends StatelessWidget {
 
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: name, email: email, subjects: ["미적분", "영어", "국어"]),
+      drawer: MenuDrawer(), // 수정된 subjects 리스트는 AppBar에서 불러올 예정
       body: Padding(
         padding: EdgeInsets.all(16.0.w),
         child: Column(
@@ -23,7 +24,7 @@ class AfterLoginPage extends StatelessWidget {
           children: [
             Center(
               child: Text(
-                name+'님 환영합니다',
+                name + '님 환영합니다',
                 style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
               ),
             ),
@@ -39,7 +40,14 @@ class AfterLoginPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12.0.r),
                     ),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Attendance(name: name),
+                      ),
+                    );
+                  },
                   child: Text(
                     '출석인증하기',
                     style: TextStyle(fontSize: 22.sp, color: Colors.white),

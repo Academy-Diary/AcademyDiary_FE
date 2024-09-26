@@ -3,13 +3,18 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:fl_chart/fl_chart.dart';
 
+
 class ScoreGraph extends StatefulWidget {
+  String subjectName = "";
+  ScoreGraph({super.key, required this.subjectName});
 
   @override
-  State<ScoreGraph> createState() => _ScoreGraphState();
+  State<ScoreGraph> createState() => _ScoreGraphState(this.subjectName);
 }
 
 class _ScoreGraphState extends State<ScoreGraph> {
+  String subjectName = "";
+  _ScoreGraphState(this.subjectName);
 
   //테스트 데이터
   final _category = ["모의고사", "단원평가", "쪽지시험"];
@@ -31,14 +36,14 @@ class _ScoreGraphState extends State<ScoreGraph> {
     ScreenUtil.init(context);
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: "현우진", email: "aaa@test.com", subjects: ["미적분", "영어", "국어"],),
+      drawer: MenuDrawer(),
       body: SafeArea(
           child: Padding(
             padding: EdgeInsets.all(16.w),
             child: Column(
               children: [
                 Text(
-                  "미적분 "+_selectGraph, //과목명 + 현재 선택된 그래프
+                  subjectName+" "+_selectGraph, //과목명 + 현재 선택된 그래프
                   style: TextStyle(
                     fontSize: 26.sp,
                     fontWeight: FontWeight.bold,
