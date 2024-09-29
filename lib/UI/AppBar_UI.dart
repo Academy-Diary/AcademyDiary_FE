@@ -3,6 +3,7 @@ import 'package:academy_manager/UI/AppSettings_UI.dart';
 import 'package:academy_manager/UI/BillList_UI.dart';
 import 'package:academy_manager/UI/Bill_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
+import 'package:academy_manager/UI/PushList_UI.dart';
 import 'package:academy_manager/UI/NoticeList_UI.dart';
 import 'package:academy_manager/UI/ScoreGraph_UI.dart';
 import 'package:academy_manager/UI/ViewScore_UI.dart';
@@ -31,6 +32,10 @@ class MyAppBar extends StatelessWidget {
           icon: Icon(Icons.notifications),
           onPressed: () {
             // 알림 버튼 클릭 시 처리할 로직
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PushList())
+            );
           },
         ),
         IconButton(
