@@ -5,6 +5,7 @@ import 'package:academy_manager/UI/Bill_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:academy_manager/UI/PushList_UI.dart';
 import 'package:academy_manager/UI/NoticeList_UI.dart';
+import 'package:academy_manager/UI/QuizList_UI.dart';
 import 'package:academy_manager/UI/ScoreGraph_UI.dart';
 import 'package:academy_manager/UI/ViewScore_UI.dart';
 import 'package:flutter/material.dart';
@@ -291,6 +292,15 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 ],
               ),
             ),
+          ListTile(
+            title: Text("쪽지시험", style: TextStyle(fontSize: 16.sp)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => QuizListPage()),
+              );
+            },
+          ),
           Spacer(),
           // 로그아웃 메뉴
           ListTile(
