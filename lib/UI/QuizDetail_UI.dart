@@ -12,8 +12,8 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
 
   final List<Map<String, dynamic>> _questions = [
     {
-      "question": "1. 다음 중 수학의 미적분 개념에 해당하는 것은?",
-      "answers": ["극한", "적분", "미분", "통계"],
+      "question": "1. 다음 중 수학의 개념에 해당하는 것은?",
+      "answers": ["김경호", "박정민", "미분", "침착맨"],
       "correctAnswerIndex": 2,
     },
     {

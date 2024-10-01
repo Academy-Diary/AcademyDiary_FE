@@ -293,6 +293,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
               ),
             ),
           ListTile(
+            shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
             title: Text("쪽지시험", style: TextStyle(fontSize: 16.sp)),
             onTap: () {
               Navigator.push(
