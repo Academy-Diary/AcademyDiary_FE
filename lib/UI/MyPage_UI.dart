@@ -15,7 +15,7 @@ class MyPage extends StatefulWidget {
 class _MyPageState extends State<MyPage> {
   final MyPageApi myPageApi = MyPageApi();
   File? file;
-  String? name = "", id = "", email = "", phone = "", role = "";
+  String? name = "", id = "", email = "", phone = "", role = "", family = "";
 
   @override
   void initState() {
@@ -41,15 +41,17 @@ class _MyPageState extends State<MyPage> {
         name = userInfo['user_name'];
         email = userInfo['email'];
         phone = userInfo['phone_number'];
-        role = userInfo['role']== "STUDENT"? "학생" : "학부모";
+        role = userInfo['role'] == "STUDENT" ? "학생" : "학부모";
+        family = userInfo['family'] ?? ""; // 학생 아이디가 있으면 저장
         file = profileImage;
+
+        print("family: $family");
       });
     } else {
       // id가 null일 경우 처리
       Fluttertoast.showToast(msg: "ID를 찾을 수 없습니다.");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +72,6 @@ class _MyPageState extends State<MyPage> {
                 backgroundColor: Colors.grey[300],
               ),
             ),
-
             SizedBox(height: 30.h),
             _buildUserInfo(),
             Spacer(),
@@ -91,8 +92,12 @@ class _MyPageState extends State<MyPage> {
         children: [
           Text("name: $name($role)", style: TextStyle(fontSize: 18.sp)),
           SizedBox(height: 10.h),
-          Text("ID: $id", style: TextStyle(fontSize: 18.sp)),
+          Text("ID: $id", style: TextStyle(fontSize: 18.sp)), // 학부모 ID
           SizedBox(height: 10.h),
+          if (role == "학부모" && family != null && family!.isNotEmpty) ...[
+            Text("학생 아이디: $family", style: TextStyle(fontSize: 18.sp)), // 학생 아이디 추가
+            SizedBox(height: 10.h),
+          ],
           Text("Email: $email", style: TextStyle(fontSize: 18.sp)),
           SizedBox(height: 10.h),
           Text("phone: $phone", style: TextStyle(fontSize: 18.sp)),

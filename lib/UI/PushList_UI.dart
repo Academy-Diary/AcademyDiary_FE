@@ -16,7 +16,7 @@ class _PushListState extends State<PushList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(name: "Minsoo Kim", email: "minsoomark@naver.com", subjects:["미적분", "영어", "국어"]),
+      drawer: MenuDrawer(),
       body: SafeArea(
         child: Column(
           children: [
