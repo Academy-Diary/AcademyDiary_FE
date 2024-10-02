@@ -57,6 +57,11 @@ class AppbarApi {
     return await storage.read(key: 'id');
   }
 
+  //academyId 가져오기
+  Future<String?> getAcademyId() async {
+    return await storage.read(key: 'academyId');
+  }
+
   // 수강 중인 과목 조회 API 호출
   Future<List<Map<String, dynamic>>> fetchSubjects(String userId) async {
     try {

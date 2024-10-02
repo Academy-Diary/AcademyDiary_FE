@@ -4,6 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/API/Score_API.dart';
 
 class ViewScore extends StatefulWidget {
+  final List<Map<String, dynamic>> subjects;  // 과목 리스트를 받아옴
+  final String academyId;  // academy_id를 받아옴
+
+  ViewScore({required this.subjects, required this.academyId});
+
   @override
   State<ViewScore> createState() => _ViewScoreState();
 }
@@ -29,8 +34,9 @@ class _ViewScoreState extends State<ViewScore> {
   Future<void> _fetchExamTypes() async {
     try {
       await scoreApi.initTokens();
+      String academyId = await scoreApi.getAcademyId();  // 학원 ID 가져오기
       print('Fetching exam types...');
-      List<Map<String, dynamic>> fetchedExamTypes = await scoreApi.fetchExamTypes();
+      List<Map<String, dynamic>> fetchedExamTypes = await scoreApi.fetchExamTypes(academyId);  // academy_id 전달
       print('Exam types fetched: $fetchedExamTypes');
       setState(() {
         _examTypes = fetchedExamTypes;
@@ -41,7 +47,6 @@ class _ViewScoreState extends State<ViewScore> {
       print('Error fetching exam types: $e');
     }
   }
-
 
   // 성적을 API에서 가져오는 메서드
   Future<void> _fetchScores() async {
@@ -117,11 +122,25 @@ class _ViewScoreState extends State<ViewScore> {
                   DataColumn(label: Expanded(child: Text("응시일"))),
                 ],
                 rows: _scores.map((score) {
+                  // 시험 유형 찾기
+                  // 기존에 firstWhere로 비교하던 로직 대신 바로 exam_type_name 출력
+                  final examTypeName = _examTypes.isNotEmpty ? _examTypes[0]['exam_type_name'] : '알 수 없음';
+
+
+                  // 점수가 null일 경우 빈 값으로 처리
+                  final scoreValue = score['score'] != null ? score['score'].toString() : '';
+
+                  // 과목명을 가져오기
+                  final lectureName = widget.subjects.firstWhere(
+                        (subject) => subject['lecture_id'] == score['lecture_id'],
+                    orElse: () => {'lecture_name': '알 수 없음'},
+                  )['lecture_name'];
+
                   return DataRow(cells: [
-                    DataCell(Text(_examTypes.firstWhere((examType) => examType['exam_type_id'] == score['exam_type_id'])['exam_type_name'])),
+                    DataCell(Text(examTypeName)),
                     DataCell(Text(score['exam_name'])),
-                    DataCell(Text(score['lecture_id'].toString())),
-                    DataCell(Text(score['score'].toString())),
+                    DataCell(Text(lectureName)),
+                    DataCell(Text(scoreValue)),
                     DataCell(Text(score['exam_date'].substring(0, 10))),
                   ]);
                 }).toList(),

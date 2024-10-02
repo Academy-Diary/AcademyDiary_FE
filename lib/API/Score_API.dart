@@ -20,10 +20,18 @@ class ScoreApi {
     return await storage.read(key: 'id') ?? "";
   }
 
-  // 시험 유형 조회 API 호출
-  Future<List<Map<String, dynamic>>> fetchExamTypes() async {
+  // 학원 ID를 storage에서 가져옴 (수정된 부분)
+  Future<String> getAcademyId() async {
+    String? academyId = await storage.read(key: 'academy_id');
+    print('academy_id: $academyId');  // 여기서 academy_id를 확인
+    return academyId ?? "";
+  }
+
+
+  // 시험 유형 조회 API 호출 (academy_id 추가)
+  Future<List<Map<String, dynamic>>> fetchExamTypes(String academyId) async {
     try {
-      var response = await dio.get('/exam-type');
+      var response = await dio.get('/exam-type/academy/$academyId');
       List<Map<String, dynamic>> examTypes = List<Map<String, dynamic>>.from(response.data['data']['exam_types']);
       return examTypes;
     } catch (e) {
