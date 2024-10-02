@@ -15,7 +15,7 @@ class MyPage extends StatefulWidget {
 class _MyPageState extends State<MyPage> {
   final MyPageApi myPageApi = MyPageApi();
   File? file;
-  String? name = "", id = "", email = "", phone = "", role = "";
+  String? name = "", id = "", email = "", phone = "", role = "", family = "";
 
   @override
   void initState() {
@@ -34,22 +34,28 @@ class _MyPageState extends State<MyPage> {
     if (userId != null) {
       // 사용자 정보 및 프로필 이미지 가져오기
       var userInfo = await myPageApi.fetchUserInfo(userId);
+      print(userInfo);  // 여기에 추가해서 API 응답 데이터를 확인
+
       var profileImage = await myPageApi.downloadUserProfileImage(userId);
 
       setState(() {
         id = userId; // id 반영
-        name = userInfo['user_name'];
-        email = userInfo['email'];
-        phone = userInfo['phone_number'];
-        role = userInfo['role']== "STUDENT"? "학생" : "학부모";
+        name = userInfo['data']['user_name'];
+        email = userInfo['data']['email'];
+        phone = userInfo['data']['phone_number'];
+        role = userInfo['data']['role'] == "STUDENT" ? "학생" : "학부모";
+        family = userInfo['data']['family'] ?? ""; // family 정보 불러오기
         file = profileImage;
+
+        if (userInfo['data']['family'] != null && userInfo['data']['family'].isNotEmpty) {
+          print('family: ${userInfo['data']['family']}');  // family 값 출력
+        }
       });
     } else {
       // id가 null일 경우 처리
       Fluttertoast.showToast(msg: "ID를 찾을 수 없습니다.");
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -70,9 +76,12 @@ class _MyPageState extends State<MyPage> {
                 backgroundColor: Colors.grey[300],
               ),
             ),
-
             SizedBox(height: 30.h),
             _buildUserInfo(),
+            if (role == "학부모" && family != null && family!.isNotEmpty) ...[
+              SizedBox(height: 20.h),
+              _buildStudentInfo(),  // 학생 정보 표시하는 위젯 추가
+            ],
             Spacer(),
             _buildEditButton(),
           ],
@@ -96,6 +105,20 @@ class _MyPageState extends State<MyPage> {
           Text("Email: $email", style: TextStyle(fontSize: 18.sp)),
           SizedBox(height: 10.h),
           Text("phone: $phone", style: TextStyle(fontSize: 18.sp)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudentInfo() {
+    return Container(
+      padding: EdgeInsets.all(16.w),
+      width: double.infinity,
+      decoration: BoxDecoration(border: Border.all(color: Colors.blue, width: 2.w)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("학생 아이디: $family", style: TextStyle(fontSize: 18.sp, color: Colors.blue)),
         ],
       ),
     );
