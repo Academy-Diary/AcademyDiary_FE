@@ -2,6 +2,7 @@ import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
 import 'package:academy_manager/UI/BillList_UI.dart';
 import 'package:academy_manager/UI/Bill_UI.dart';
+import 'package:academy_manager/UI/ChattingList_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:academy_manager/UI/PushList_UI.dart';
 import 'package:academy_manager/UI/NoticeList_UI.dart';
@@ -300,6 +301,13 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 context,
                 MaterialPageRoute(builder: (context) => QuizListPage()),
               );
+            },
+          ),
+               ListTile(
+            shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
+            title: Text("채팅", style: TextStyle(fontSize: 16.sp)),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (builder)=>ChattingListUI()));
             },
           ),
           Spacer(),
