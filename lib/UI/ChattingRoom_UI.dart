@@ -41,7 +41,7 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
                       _getSenderMessage(context, "이름", "연속된 메세지입니다. ", "08:31", true),
                       _getSenderMessage(context, "이름", "연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?", "08:32", true),
                       SizedBox(height: 20.h,),
-                      _getReceiverMessage(context, "내메세지", "08:33"),
+                      _getReceiverMessage(context, "내메세지", "08:33", false),
                     ],
                   ),
                 )
@@ -124,7 +124,7 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
     );
   }
 
-  Widget _getReceiverMessage(context, String msg, String time){
+  Widget _getReceiverMessage(context, String msg, String time, bool isRead){
     return Padding(
       padding: EdgeInsets.only(top: 5),
       child: Row(
