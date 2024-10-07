@@ -41,7 +41,7 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
                       _getSenderMessage(context, "이름", "연속된 메세지입니다. ", "08:31", true),
                       _getSenderMessage(context, "이름", "연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?", "08:32", true),
                       SizedBox(height: 20.h,),
-                      _getReceiverMessage(context, "내메세지", "08:33"),
+                      _getReceiverMessage(context, "내메세지", "08:33", true),
                     ],
                   ),
                 )
@@ -124,14 +124,21 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
     );
   }
 
-  Widget _getReceiverMessage(context, String msg, String time){
+  Widget _getReceiverMessage(context, String msg, String time, bool isRead){
     return Padding(
       padding: EdgeInsets.only(top: 5),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(time),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if(isRead)
+                  Text("1"),
+              Text(time),
+            ],
+          ),
           Container(
             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6), // 텍스트의 최대 너비 설정
             padding: EdgeInsets.all(10),
