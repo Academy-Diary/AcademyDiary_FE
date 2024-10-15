@@ -19,6 +19,7 @@ class _ViewScoreState extends State<ViewScore> {
   String _selectSubject = "0";  // 과목 선택된 값 (0은 전 과목)
   String _selectCategory = "";  // 시험유형 선택된 값
   bool _asc = true;  // 성적 정렬
+  bool _isLoading = true;  // 로딩 상태 추가
   List<Map<String, dynamic>> _examTypes = [];  // 시험 유형 리스트
   List<Map<String, dynamic>> _scores = [];  // 성적 리스트
 
@@ -48,6 +49,10 @@ class _ViewScoreState extends State<ViewScore> {
 
   Future<void> _fetchScores() async {
     try {
+      setState(() {
+        _isLoading = true;  // 로딩 시작
+      });
+
       String userId = await scoreApi.getUserId();
       List<Map<String, dynamic>> fetchedScores = await scoreApi.fetchScores(
         userId: userId,
@@ -61,6 +66,7 @@ class _ViewScoreState extends State<ViewScore> {
         // 전과목일 경우 각 성적 항목에서 lecture_id를 유지
         setState(() {
           _scores = fetchedScores;  // 가져온 성적을 화면에 반영
+          _isLoading = false;  // 로딩 완료
         });
       } else {
         // 특정 과목일 경우 lecture_id를 상위에서 추가
@@ -70,11 +76,15 @@ class _ViewScoreState extends State<ViewScore> {
 
         setState(() {
           _scores = fetchedScores;  // 가져온 성적을 화면에 반영
+          _isLoading = false;  // 로딩 완료
         });
       }
     } catch (e) {
       // 에러 발생 시 처리
       print('Error fetching scores: $e');
+      setState(() {
+        _isLoading = false;  // 에러 발생 시에도 로딩 완료 처리
+      });
     }
   }
 
@@ -150,6 +160,12 @@ class _ViewScoreState extends State<ViewScore> {
               ),
               SizedBox(height: 20.h),
 
+              // 로딩 중일 때 로딩 표시
+              if (_isLoading)
+                Center(child: CircularProgressIndicator()),
+
+              // 로딩 완료 후 성적 테이블 출력
+              if (!_isLoading)
                 DataTable(
                   columnSpacing: 25.sp,
                   columns: [
@@ -194,5 +210,3 @@ class _ViewScoreState extends State<ViewScore> {
     );
   }
 }
-
-
