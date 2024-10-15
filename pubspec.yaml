@@ -37,9 +37,9 @@ dependencies:
   cupertino_icons: ^1.0.6
   email_validator: ^3.0.0
   flutter_screenutil: ^5.9.3
-  fl_chart: ^0.68.0
+  fl_chart: ^0.69.0
   flutter_secure_storage: ^9.2.2 # 자동로그인 정보를 저장하기 위핸 보안 저장소
-  dio: ^4.0.6 # http를 사용
+  dio: ^5.7.0 # http를 사용
   fluttertoast: ^8.2.8 # toast메세지 사용
   path_provider: ^2.1.4
   image_picker: ^1.1.2
@@ -55,7 +55,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -71,6 +71,13 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
      - img/default.png
+     - assets/fonts/
+
+  fonts:
+    - family: Pretendard
+      fonts:
+        - asset: assets/fonts/Pretendard-Black.ttf
+          weight: 700
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

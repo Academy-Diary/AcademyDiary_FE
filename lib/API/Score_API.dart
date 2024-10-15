@@ -43,12 +43,13 @@ class ScoreApi {
   Future<List<Map<String, dynamic>>> fetchScores({
     required String userId,
     required int lectureId,
-    required String examType,
+    required String examTypeId,  // examType -> examTypeId로 수정
     required bool asc,
   }) async {
     try {
+      // exam_type을 exam_type_id로 수정
       var response = await dio.get(
-        '/lecture/$lectureId/score?user_id=$userId&exam_type=$examType&asc=$asc',
+        '/lecture/$lectureId/score?user_id=$userId&exam_type_id=$examTypeId&asc=$asc',
       );
       List<Map<String, dynamic>> scores = List<Map<String, dynamic>>.from(response.data['data']['exam_data']['exam_list']);
       return scores;

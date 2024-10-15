@@ -35,41 +35,59 @@ class _ViewScoreState extends State<ViewScore> {
     try {
       await scoreApi.initTokens();
       String academyId = await scoreApi.getAcademyId();  // 학원 ID 가져오기
-      print('Fetching exam types...');
       List<Map<String, dynamic>> fetchedExamTypes = await scoreApi.fetchExamTypes(academyId);  // academy_id 전달
-      print('Exam types fetched: $fetchedExamTypes');
       setState(() {
         _examTypes = fetchedExamTypes;
         _selectCategory = _examTypes.isNotEmpty ? _examTypes[0]['exam_type_id'].toString() : "";
       });
-      _fetchScores();
+      await _fetchScores();  // 시험 유형 가져온 후 성적 데이터 가져옴
     } catch (e) {
       print('Error fetching exam types: $e');
     }
   }
 
-  // 성적을 API에서 가져오는 메서드
   Future<void> _fetchScores() async {
     try {
-      String userId = await scoreApi.getUserId();  // 사용자 ID 가져오기
+      String userId = await scoreApi.getUserId();
       List<Map<String, dynamic>> fetchedScores = await scoreApi.fetchScores(
         userId: userId,
         lectureId: int.parse(_selectSubject),
-        examType: _selectCategory,
+        examTypeId: _selectCategory,
         asc: _asc,
       );
-      setState(() {
-        _scores = fetchedScores;  // 가져온 성적을 화면에 반영
-      });
+
+      // 전과목일 때는 lecture_id를 상위에서 가져오는 것이 아니라, 각 성적 항목의 데이터에서 직접 가져옴
+      if (_selectSubject == "0") {
+        // 전과목일 경우 각 성적 항목에서 lecture_id를 유지
+        setState(() {
+          _scores = fetchedScores;  // 가져온 성적을 화면에 반영
+        });
+      } else {
+        // 특정 과목일 경우 lecture_id를 상위에서 추가
+        for (var score in fetchedScores) {
+          score['lecture_id'] = _selectSubject;
+        }
+
+        setState(() {
+          _scores = fetchedScores;  // 가져온 성적을 화면에 반영
+        });
+      }
     } catch (e) {
       // 에러 발생 시 처리
       print('Error fetching scores: $e');
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     ScreenUtil.init(context);
+
+    // '전과목' 옵션을 추가한 subject 리스트 (중복을 방지)
+    List<Map<String, dynamic>> subjectOptions = [
+      {'lecture_id': '0', 'lecture_name': '전과목'},
+      ...widget.subjects
+    ];
 
     return Scaffold(
       appBar: MyAppBar().build(context),
@@ -88,7 +106,10 @@ class _ViewScoreState extends State<ViewScore> {
                     items: _examTypes.map<DropdownMenuItem<String>>((examType) {
                       return DropdownMenuItem(
                         value: examType['exam_type_id'].toString(),
-                        child: Text(examType['exam_type_name']),
+                        child: Text(
+                          examType['exam_type_name'],
+                          style: TextStyle(color: Colors.blue),
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -97,54 +118,75 @@ class _ViewScoreState extends State<ViewScore> {
                       });
                       _fetchScores();  // 시험 유형을 변경했을 때 성적 다시 조회
                     },
+                    underline: Container(
+                      height: 1,
+                      color: Colors.blue,
+                    ),
                   ),
-                  // 정렬 선택 Switch
-                  Switch(
-                    value: _asc,
+                  // 과목 선택 Dropdown (전과목 포함)
+                  DropdownButton(
+                    value: _selectSubject,
+                    items: subjectOptions.map<DropdownMenuItem<String>>((subject) {
+                      return DropdownMenuItem(
+                        value: subject['lecture_id'].toString(),
+                        child: Text(
+                          subject['lecture_name'],
+                          style: TextStyle(color: Colors.blue),
+                        ),
+                      );
+                    }).toList(),
                     onChanged: (value) {
                       setState(() {
-                        _asc = value;
+                        _selectSubject = value!;  // 선택된 과목 업데이트
                       });
-                      _fetchScores();  // 정렬 옵션을 바꿨을 때 성적 다시 조회
+                      _fetchScores();  // 선택 후 성적 다시 조회
                     },
+                    underline: Container(
+                      height: 1,
+                      color: Colors.blue,
+                    ),
                   ),
                 ],
               ),
               SizedBox(height: 20.h),
-              // 성적 데이터 테이블
-              DataTable(
-                columnSpacing: 25.sp,
-                columns: [
-                  DataColumn(label: Expanded(child: Text("시험유형"))),
-                  DataColumn(label: Expanded(child: Text("시험이름"))),
-                  DataColumn(label: Expanded(child: Text("과목명"))),
-                  DataColumn(label: Expanded(child: Text("점수"))),
-                  DataColumn(label: Expanded(child: Text("응시일"))),
-                ],
-                rows: _scores.map((score) {
-                  // 시험 유형 찾기
-                  // 기존에 firstWhere로 비교하던 로직 대신 바로 exam_type_name 출력
-                  final examTypeName = _examTypes.isNotEmpty ? _examTypes[0]['exam_type_name'] : '알 수 없음';
 
+                DataTable(
+                  columnSpacing: 25.sp,
+                  columns: [
+                    DataColumn(label: Expanded(child: Text("시험유형"))),
+                    DataColumn(label: Expanded(child: Text("시험이름"))),
+                    DataColumn(label: Expanded(child: Text("과목명"))),
+                    DataColumn(label: Expanded(child: Text("점수"))),
+                    DataColumn(label: Expanded(child: Text("응시일"))),
+                  ],
+                  rows: _scores.where((score) {
+                    // 전과목일 때는 모든 시험을 보여주고, 특정 과목 선택 시 해당 과목의 시험만 보여줌
+                    if (_selectSubject == "0") {
+                      return true; // 전과목일 때는 모든 점수 출력
+                    } else {
+                      print('Comparing _selectSubject: $_selectSubject with score lecture_id: ${score['lecture_id']}');
+                      return score['lecture_id'].toString() == _selectSubject; // 특정 과목일 때는 비교
+                    }
+                  }).map((score) {
 
-                  // 점수가 null일 경우 빈 값으로 처리
-                  final scoreValue = score['score'] != null ? score['score'].toString() : '';
+                    // 과목명을 가져오기
+                    final lectureName = subjectOptions.firstWhere(
+                          (subject) => subject['lecture_id'].toString() == score['lecture_id'].toString(),
+                      orElse: () => {'lecture_name': '알 수 없음'},
+                    )['lecture_name'];
 
-                  // 과목명을 가져오기
-                  final lectureName = widget.subjects.firstWhere(
-                        (subject) => subject['lecture_id'] == score['lecture_id'],
-                    orElse: () => {'lecture_name': '알 수 없음'},
-                  )['lecture_name'];
-
-                  return DataRow(cells: [
-                    DataCell(Text(examTypeName)),
-                    DataCell(Text(score['exam_name'])),
-                    DataCell(Text(lectureName)),
-                    DataCell(Text(scoreValue)),
-                    DataCell(Text(score['exam_date'].substring(0, 10))),
-                  ]);
-                }).toList(),
-              ),
+                    return DataRow(cells: [
+                      DataCell(Text(_examTypes.firstWhere(
+                            (examType) => examType['exam_type_id'].toString() == _selectCategory,
+                        orElse: () => {'exam_type_name': '알 수 없음'},
+                      )['exam_type_name'])),
+                      DataCell(Text(score['exam_name'])),
+                      DataCell(Text(lectureName)),
+                      DataCell(Text(score['score'].toString())),  // 성적은 null 처리 안 함
+                      DataCell(Text(score['exam_date'].substring(0, 10))),
+                    ]);
+                  }).toList(),
+                ),
             ],
           ),
         ),
@@ -152,3 +194,5 @@ class _ViewScoreState extends State<ViewScore> {
     );
   }
 }
+
+

@@ -22,6 +22,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Academy Manager',
         theme: ThemeData(
+          fontFamily: 'Pretendard',
           useMaterial3: false,
         ),
         home: MainPage(),
