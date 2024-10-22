@@ -11,7 +11,7 @@ class MyDio{
   MyDio() {
     // 기본 정보
     dio.options.baseUrl =
-    'http://192.168.0.10:8000'; //개발 중 주소는 내 아이피 localhost는 x
+    'http://192.168.0.12:8000'; //개발 중 주소는 내 아이피 localhost는 x
     dio.options.connectTimeout = Duration(seconds: 5); // 5s
     dio.options.receiveTimeout = Duration(seconds: 10);
     dio.options.headers =
@@ -79,24 +79,26 @@ class MyDio{
         )
       );
   }
-
   Future<String> _refreshToken(String token)async{
     Dio _dio = Dio(
       BaseOptions(
-        baseUrl: 'http://192.168.0.10:8000',
+        baseUrl: 'http://192.168.0.12:8000',
         contentType: 'application/json',
       )
-    );
+    ); // accessToken 재발급을 위한 추가 dio
     String? accessTime = await storage.read(key:'accessTokenTime');
     DateTime befTime = DateTime.parse(accessTime.toString());
-    if(befTime.add(Duration(seconds: 30)).isBefore(DateTime.now())){
+    if(befTime.add(Duration(hours: 1)).isBefore(DateTime.now())){ // accessToken 저장한지 1시간이 지났으면 AccessToken 다시 받아옴.
       _dio.options.headers['Authorization'] = token;
       String? refreshToken = await storage.read(key: 'refreshToken');
       _dio.options.headers['cookie'] = refreshToken.toString();
       var res1 = await _dio.post('/user/refresh-token');
 
+      final setCookie = res1.headers['set-cookie'];
       await storage.delete(key: 'accessToken');
       await storage.write(key: 'accessToken', value: res1.data['accessToken']);
+      await storage.delete(key: 'refreshToken');
+      await storage.write(key: 'refreshToken', value: setCookie![0]);
 
       await storage.delete(key: 'accessTokenTime');
       await storage.write(key: 'accessTokenTime', value: DateTime.now().toString());
@@ -105,4 +107,6 @@ class MyDio{
       return token;
     }
   }
+
+
 }
