@@ -38,10 +38,10 @@ class _MyPageState extends State<MyPage> {
 
       setState(() {
         id = userId; // id 반영
-        name = userInfo['user_name'];
-        email = userInfo['email'];
-        phone = userInfo['phone_number'];
-        role = userInfo['role']== "STUDENT"? "학생" : "학부모";
+        name = userInfo['data']['user_name'];
+        email = userInfo['data']['email'];
+        phone = userInfo['data']['phone_number'];
+        role = userInfo['data']['role']== "STUDENT"? "학생" : "학부모";
         file = profileImage;
       });
     } else {
