@@ -47,12 +47,37 @@ class ScoreApi {
     required bool asc,
   }) async {
     try {
-      // exam_type을 exam_type_id로 수정
       var response = await dio.get(
         '/lecture/$lectureId/score?user_id=$userId&exam_type_id=$examTypeId&asc=$asc',
       );
-      List<Map<String, dynamic>> scores = List<Map<String, dynamic>>.from(response.data['data']['exam_data']['exam_list']);
-      return scores;
+
+      // 응답 데이터를 Map으로 처리하여 필요한 값 추출
+      final data = response.data['data'];
+
+      if (data.containsKey('exam_data') && data['exam_data'] != null) {
+        final examData = data['exam_data'];
+        final examTypeId = examData['exam_type']['exam_type_id'];
+        final examTypeName = examData['exam_type']['exam_type_name'];
+        final examList = List<Map<String, dynamic>>.from(examData['exam_list']);
+
+        print('Fetched exam_type_id: $examTypeId');
+        print('Fetched exam_type_name: $examTypeName');
+        print('Fetched exam_list: $examList');
+
+        // 각 시험 데이터에 exam_type_id와 exam_type_name 추가
+        final scores = examList.map((score) {
+          return {
+            ...score,
+            'exam_type_id': examTypeId.toString(),
+            'exam_type_name': examTypeName,
+          };
+        }).toList();
+
+        return scores;
+      } else {
+        // 만약 exam_data가 없을 경우 빈 리스트 반환
+        return [];
+      }
     } catch (e) {
       throw Exception('성적을 가져오는 중 오류 발생: $e');
     }
