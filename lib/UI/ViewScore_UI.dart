@@ -17,8 +17,8 @@ class _ViewScoreState extends State<ViewScore> {
   Color mainColor = Color(0xFF565D6D);
   Color backColor = Color(0xFFD9D9D9);
   String _selectSubject = "0"; // 과목 선택된 값 (0은 전 과목)
-  String _selectCategory = ""; // 시험유형 선택된 값
-  bool _asc = true; // 성적 정렬
+  String _selectCategory = ""; // 시험 유형 선택된 값
+  bool _asc = true; // 정렬 기준 (true: 오름차순, false: 내림차순)
   bool _isLoading = true; // 로딩 상태 추가
   List<Map<String, dynamic>> _examTypes = []; // 시험 유형 리스트
   List<Map<String, dynamic>> _scores = []; // 성적 리스트
@@ -31,19 +31,20 @@ class _ViewScoreState extends State<ViewScore> {
     _fetchExamTypes(); // 화면 처음 시작할 때 시험 유형을 가져옴
   }
 
-  // 시험 유형을 API에서 가져오는 메서드
   Future<void> _fetchExamTypes() async {
     try {
       await scoreApi.initTokens();
       String academyId = await scoreApi.getAcademyId(); // 학원 ID 가져오기
       List<Map<String, dynamic>> fetchedExamTypes =
-      await scoreApi.fetchExamTypes(academyId); // academy_id 전달
+      await scoreApi.fetchExamTypes(academyId);
+
       setState(() {
         _examTypes = fetchedExamTypes;
         _selectCategory = _examTypes.isNotEmpty
             ? _examTypes[0]['exam_type_id'].toString()
             : "";
       });
+
       await _fetchScores(); // 시험 유형 가져온 후 성적 데이터 가져옴
     } catch (e) {
       print('Error fetching exam types: $e');
@@ -61,11 +62,11 @@ class _ViewScoreState extends State<ViewScore> {
         userId: userId,
         lectureId: int.parse(_selectSubject),
         examTypeId: _selectCategory,
-        asc: _asc,
+        asc: _asc, // 정렬 기준 전달
       );
 
       setState(() {
-        _scores = scores;
+        _scores = scores; // API에서 정렬된 데이터 사용
         _isLoading = false; // 로딩 완료
       });
     } catch (e) {
@@ -80,7 +81,6 @@ class _ViewScoreState extends State<ViewScore> {
   Widget build(BuildContext context) {
     ScreenUtil.init(context);
 
-    // '전과목' 옵션을 추가한 subject 리스트
     List<Map<String, dynamic>> subjectOptions = [
       {'lecture_id': '0', 'lecture_name': '전과목'},
       ...widget.subjects
@@ -143,6 +143,22 @@ class _ViewScoreState extends State<ViewScore> {
                       color: Colors.blue,
                     ),
                   ),
+                  // 정렬 토글 버튼ㅅ
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        _asc = !_asc; // 정렬 기준 변경
+                      });
+                      _fetchScores(); // 정렬 기준 변경 후 성적 다시 조회
+                    },
+                    child: Row(
+                      children: [
+                        Icon(_asc ? Icons.arrow_upward : Icons.arrow_downward),
+                        SizedBox(width: 5.w),
+                        Text(_asc ? '오름차순' : '내림차순'),
+                      ],
+                    )
+                  ),
                 ],
               ),
               SizedBox(height: 20.h),
@@ -151,7 +167,7 @@ class _ViewScoreState extends State<ViewScore> {
               if (_isLoading)
                 Center(child: CircularProgressIndicator()),
 
-              // 로딩 완료 후 성적 테이블 또는 메시지 출력
+              // 성적 데이터가 있을 때 테이블 출력, 없으면 메시지 표시
               if (!_isLoading)
                 _scores.isEmpty
                     ? Center(
@@ -169,23 +185,7 @@ class _ViewScoreState extends State<ViewScore> {
                     DataColumn(label: Expanded(child: Text("점수"))),
                     DataColumn(label: Expanded(child: Text("응시일"))),
                   ],
-                  rows: _scores.where((score) {
-                    // 과목 필터링 로직
-                    if (_selectSubject == "0") {
-                      return true; // 전과목일 때 모든 점수 출력
-                    } else {
-                      return score['lecture_id'].toString() ==
-                          _selectSubject; // 특정 과목 필터링
-                    }
-                  }).where((score) {
-                    if (_selectCategory.isEmpty) {
-                      return true; // 시험 유형이 없을 경우 모든 항목 출력
-                    } else {
-                      return score['exam_type_id'].toString() ==
-                          _selectCategory; // 시험유형 필터링
-                    }
-                  }).map((score) {
-                    // 과목명 가져오기
+                  rows: _scores.map((score) {
                     final lectureName = subjectOptions.firstWhere(
                           (subject) =>
                       subject['lecture_id'].toString() ==
