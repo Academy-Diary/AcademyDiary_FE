@@ -2,21 +2,28 @@ import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:academy_manager/UI/Attendance_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'NoticeDetail_UI.dart';  // NoticeDetail 화면을 import
+import 'NoticeDetail_UI.dart';
 
 class AfterLoginPage extends StatelessWidget {
-  String name, id, email, phone;
-  AfterLoginPage({super.key, required this.name, required this.id, required this.email, required this.phone});
+  final String name, id, email, phone, role;
+  AfterLoginPage({
+    super.key,
+    required this.name,
+    required this.id,
+    required this.email,
+    required this.phone,
+    required this.role,
+  });
 
   @override
   Widget build(BuildContext context) {
-    ScreenUtil.init(context); // ScreenUtil 초기화
+    ScreenUtil.init(context);
 
     final mainColor = Color(0xFF565D6D);
 
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(), // 수정된 subjects 리스트는 AppBar에서 불러올 예정
+      drawer: MenuDrawer(),
       body: Padding(
         padding: EdgeInsets.all(16.0.w),
         child: Column(
@@ -24,7 +31,7 @@ class AfterLoginPage extends StatelessWidget {
           children: [
             Center(
               child: Text(
-                name + '님 환영합니다',
+                '$name님 환영합니다',
                 style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
               ),
             ),
@@ -44,12 +51,12 @@ class AfterLoginPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Attendance(name: name),
+                        builder: (context) => Attendance(role: role, name: name),
                       ),
                     );
                   },
                   child: Text(
-                    '출석인증하기',
+                    role == 'student' ? '출석인증하기' : '학생출석확인',
                     style: TextStyle(fontSize: 22.sp, color: Colors.white),
                   ),
                 ),
@@ -159,7 +166,6 @@ class NoticeTile extends StatelessWidget {
       title: Text(title, style: TextStyle(fontSize: 16.sp)),
       subtitle: Text('$author - $date', style: TextStyle(fontSize: 14.sp)),
       onTap: () {
-        // 공지사항 상세보기 페이지로 이동
         Navigator.push(
           context,
           MaterialPageRoute(
