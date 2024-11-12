@@ -2,9 +2,11 @@ import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
 import 'package:academy_manager/UI/BillList_UI.dart';
 import 'package:academy_manager/UI/Bill_UI.dart';
+import 'package:academy_manager/UI/ChattingList_UI.dart';
 import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:academy_manager/UI/PushList_UI.dart';
 import 'package:academy_manager/UI/NoticeList_UI.dart';
+import 'package:academy_manager/UI/QuizList_UI.dart';
 import 'package:academy_manager/UI/ScoreGraph_UI.dart';
 import 'package:academy_manager/UI/ViewScore_UI.dart';
 import 'package:flutter/material.dart';
@@ -299,6 +301,23 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 ],
               ),
             ),
+          ListTile(
+            shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
+            title: Text("쪽지시험", style: TextStyle(fontSize: 16.sp)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => QuizListPage()),
+              );
+            },
+          ),
+               ListTile(
+            shape: Border(bottom: BorderSide(color: Color(0xFFD9D9D9))),
+            title: Text("채팅", style: TextStyle(fontSize: 16.sp)),
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (builder)=>ChattingListUI()));
+            },
+          ),
           Spacer(),
           // 로그아웃 메뉴
           ListTile(

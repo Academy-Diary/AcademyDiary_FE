@@ -24,6 +24,8 @@ class MyPageApi {
 
   Future<Map<String, dynamic>> fetchUserInfo(String id) async {
     var response = await dio.get('/user/$id/basic-info');
+    print('API Response: ${response.data}');  // 응답 데이터 출력
+
     return response.data;
   }
 
