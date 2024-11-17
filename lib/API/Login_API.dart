@@ -45,7 +45,7 @@ class LoginApi {
     await storage.write(key: 'accessToken', value: response.data['accessToken']);
     await storage.write(key: 'accessTokenTime', value: DateTime.now().toString());
 
-    // 수정된 부분: null 체크 추가
+    // null 체크 추가
     final setCookie = response.headers['set-cookie'];
     if (setCookie != null && setCookie.isNotEmpty) {
       await storage.delete(key: 'refreshToken');
@@ -63,8 +63,18 @@ class LoginApi {
     await storage.write(key: 'phone', value: data['user']['phone_number']);
   }
 
+  // academy_id 저장 메서드 추가
+  Future<void> saveAcademyId(String academyId) async {
+    await storage.write(key: 'academy_id', value: academyId);
+  }
+
   // 저장된 로그인 정보 가져오기
   Future<String?> getUserInfo() async {
     return await storage.read(key: "login");
+  }
+
+  // 저장된 academy_id 가져오기
+  Future<String?> getAcademyId() async {
+    return await storage.read(key: "academy_id");
   }
 }

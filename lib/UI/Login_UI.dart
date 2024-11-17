@@ -117,6 +117,10 @@ class _LoginpageState extends State<LoginPage> {
       await loginApi.saveLoginInfo(id, pw, isAutoLogin);  // 자동 로그인 정보 저장
       await loginApi.saveTokens(response, id);  // 토큰 저장
 
+      // academy_id를 저장
+      String academyId = response.data['user']['academy_id'];
+      await loginApi.saveAcademyId(academyId);
+
       if (response.data['user']['role'] == "STUDENT" || response.data['user']['role'] == "PARENT") {
         _navigateToNextPage(response, id);  // 다음 페이지로 이동
       } else {
@@ -126,6 +130,7 @@ class _LoginpageState extends State<LoginPage> {
       print(err);
     }
   }
+
 
   // ID 및 비밀번호 입력 필드
   Widget _buildTextField(TextEditingController controller, String hintText, bool autofocus, {bool isPassword = false}) {

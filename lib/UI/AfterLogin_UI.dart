@@ -56,7 +56,7 @@ class AfterLoginPage extends StatelessWidget {
                     );
                   },
                   child: Text(
-                    role == 'student' ? '출석인증하기' : '학생출석확인',
+                    role == 'STUDENT' ? '출석인증하기' : '학생출석확인',
                     style: TextStyle(fontSize: 22.sp, color: Colors.white),
                   ),
                 ),
