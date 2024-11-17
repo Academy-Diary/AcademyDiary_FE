@@ -80,6 +80,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
   String? token;
   String? refreshToken;
   String? userId;  // userId 추가
+  String? academyId; //academyId 추가
 
   final AppbarApi _appBarApi = AppbarApi(); // AuthService 객체 생성
 
@@ -96,6 +97,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
     token = await _appBarApi.getAccessToken();
     refreshToken = await _appBarApi.getRefreshToken();
     userId = await _appBarApi.getUserId();  // userId 가져오기
+    academyId = await _appBarApi.getAcademyId(); // academyId 가져오기
 
     if (token != null && refreshToken != null) {
       await _appBarApi.addTokenInterceptors(token, refreshToken);
@@ -228,8 +230,14 @@ class _MenuDrawerState extends State<MenuDrawer> {
                       // 성적 조회 화면으로 이동
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (builder) => ViewScore()),
+                        MaterialPageRoute(
+                          builder: (builder) => ViewScore(
+                            subjects: subjects,  // 과목 리스트
+                            academyId: academyId ?? '',  // academy_id
+                          ),
+                        ),
                       );
+
                     },
                   ),
                   ListTile(

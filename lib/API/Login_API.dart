@@ -61,6 +61,11 @@ class LoginApi {
     await storage.write(key: 'user_name', value: data['user']['user_name']);
     await storage.write(key: 'email', value: data['user']['email']);
     await storage.write(key: 'phone', value: data['user']['phone_number']);
+
+    // academy_id 저장
+    if (data['user']['academy_id'] != null) {
+      await storage.write(key: 'academy_id', value: data['user']['academy_id']);
+    }
   }
 
   // academy_id 저장 메서드 추가

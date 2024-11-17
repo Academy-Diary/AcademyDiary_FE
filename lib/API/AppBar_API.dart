@@ -57,7 +57,12 @@ class AppbarApi {
     return await storage.read(key: 'id');
   }
 
-  // 수강 중인 과목 조회 API 호출
+  //academyId 가져오기
+  Future<String?> getAcademyId() async {
+    return await storage.read(key: 'academyId');
+  }
+
+// 수강 중인 과목 조회 API 호출
   Future<List<Map<String, dynamic>>> fetchSubjects(String userId) async {
     try {
       print('과목 불러오기 요청: /student/$userId/lecture');
@@ -65,11 +70,12 @@ class AppbarApi {
       final response = await _dio.get('/student/$userId/lecture');  // API 경로에 user_id 포함
       print('응답: ${response.data}'); // 응답 데이터 확인
 
-      if (response.data == null || response.data['data'] == null) {
+      // 백엔드에서 응답 형식이 변경된 경우에 맞춰서 데이터 파싱
+      if (response.data == null || response.data['lectures'] == null) {
         throw Exception("서버로부터 유효한 응답을 받지 못했습니다.");
       }
 
-      List<dynamic> data = response.data['data']['lectures'];
+      List<dynamic> data = response.data['lectures'];  // 응답 형식 변경에 맞춰 수정
       return data.map((lecture) => {
         'lecture_id': lecture['lecture_id'],
         'lecture_name': lecture['lecture_name']
@@ -90,4 +96,5 @@ class AppbarApi {
       throw Exception("Failed to load subjects: $err");
     }
   }
+
 }
