@@ -77,6 +77,7 @@ class _MainPageState extends State<MainPage> {
         String name = response.data['user']['user_name'];
         String email = response.data['user']['email'];
         String phone = response.data['user']['phone_number'];
+        String role = response.data['user']['role'];
 
         if (response.data['userStatus'] != null &&
             response.data['userStatus']['status'] == "APPROVED") {
@@ -89,6 +90,7 @@ class _MainPageState extends State<MainPage> {
                 email: email,
                 id: id,
                 phone: phone,
+                role: role
               ),
             ),
           );

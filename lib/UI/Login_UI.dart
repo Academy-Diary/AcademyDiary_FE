@@ -117,6 +117,10 @@ class _LoginpageState extends State<LoginPage> {
       await loginApi.saveLoginInfo(id, pw, isAutoLogin);  // 자동 로그인 정보 저장
       await loginApi.saveTokens(response, id);  // 토큰 저장
 
+      // academy_id를 저장
+      String academyId = response.data['user']['academy_id'];
+      await loginApi.saveAcademyId(academyId);
+
       if (response.data['user']['role'] == "STUDENT" || response.data['user']['role'] == "PARENT") {
         _navigateToNextPage(response, id);  // 다음 페이지로 이동
       } else {
@@ -126,6 +130,7 @@ class _LoginpageState extends State<LoginPage> {
       print(err);
     }
   }
+
 
   // ID 및 비밀번호 입력 필드
   Widget _buildTextField(TextEditingController controller, String hintText, bool autofocus, {bool isPassword = false}) {
@@ -187,13 +192,14 @@ class _LoginpageState extends State<LoginPage> {
     String name = response.data['user']['user_name'];
     String email = response.data['user']['email'];
     String phone = response.data['user']['phone_number'];
+    String role = response.data['user']['role'];
 
     if (response.data['userStatus'] != null && response.data['userStatus']['status'] == "APPROVED") {
       loginApi.saveUserInfo(response.data); // 이름, 이메일, 전화번호를 secure_storage에 저장
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => AfterLoginPage(name: name, email: email, id: id, phone: phone),
+          builder: (context) => AfterLoginPage(role: role, name: name, email: email, id: id, phone: phone),
         ),
       );
     } else {
