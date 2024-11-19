@@ -104,11 +104,13 @@ class AfterLoginPage extends StatelessWidget {
                       title: '공지 1',
                       author: '길영',
                       date: '2024.07.01',
+                      noticeId: '1', // 공지 ID 추가
                     ),
                     NoticeTile(
                       title: '공지 2',
                       author: '길영',
                       date: '2024.07.05',
+                      noticeId: '2', // 공지 ID 추가
                     ),
                   ],
                 ),
@@ -157,8 +159,14 @@ class NoticeTile extends StatelessWidget {
   final String title;
   final String author;
   final String date;
+  final String noticeId; // 공지 ID 추가
 
-  NoticeTile({required this.title, required this.author, required this.date});
+  NoticeTile({
+    required this.title,
+    required this.author,
+    required this.date,
+    required this.noticeId, // 공지 ID 받기
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -169,7 +177,7 @@ class NoticeTile extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => NoticeDetail(),
+            builder: (context) => NoticeDetail(noticeId: noticeId), // 공지 ID 전달
           ),
         );
       },
