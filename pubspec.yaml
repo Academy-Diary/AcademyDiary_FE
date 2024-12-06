@@ -44,6 +44,7 @@ dependencies:
   path_provider: ^2.1.4
   image_picker: ^1.1.2
   http_parser: ^4.0.2
+  socket_io_client: ^2.0.0
   
 
 dev_dependencies:
@@ -72,12 +73,33 @@ flutter:
   assets:
      - img/default.png
      - assets/fonts/
+     - assets/icons/kakao_icon.png
 
   fonts:
-    - family: Pretendard
+    - family: PretendardBold
       fonts:
-        - asset: assets/fonts/Pretendard-Black.ttf
-          weight: 700
+        - asset: assets/fonts/Pretendard-Bold.ttf
+
+    - family: PretendardLight
+      fonts:
+        - asset: assets/fonts/Pretendard-Light.ttf
+
+    - family: PretendardMedium
+      fonts:
+        - asset: assets/fonts/Pretendard-Medium.ttf
+
+    - family: PretendardRegular
+      fonts:
+        - asset: assets/fonts/Pretendard-Regular.ttf
+
+    - family: PretendardSemiBold
+      fonts:
+        - asset: assets/fonts/Pretendard-SemiBold.ttf
+
+    - family: PretendardThin
+      fonts:
+        - asset: assets/fonts/Pretendard-Thin.ttf
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

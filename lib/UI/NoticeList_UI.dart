@@ -1,129 +1,137 @@
-import 'package:academy_manager/API/NoticeList_API.dart';
-import 'package:academy_manager/UI/AppBar_UI.dart';
+import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:academy_manager/UI/AppBar_UI.dart';
+import 'package:academy_manager/API/NoticeList_API.dart';
 import 'package:academy_manager/UI/NoticeDetail_UI.dart';
 
 class NoticeList extends StatefulWidget {
-  bool? isAcademy; //학원 공지 여부 true: 학원공지, false: 수업공지
-  NoticeList({super.key, this.isAcademy=true}); // isAcademy의 기본값은 true,
+  final bool isAcademy;
+
+  const NoticeList({super.key, this.isAcademy = true});
+
   @override
-  _NoticeListState createState() => _NoticeListState(this.isAcademy);
+  _NoticeListState createState() => _NoticeListState();
 }
 
 class _NoticeListState extends State<NoticeList> {
-  bool? isAcademy;
-  String name="" , email = "";
-  _NoticeListState(this.isAcademy);
-  String _selectedCategory = '수업1'; // 기본 선택값
-  final NoticelistApi _ntl = NoticelistApi();
+  final NoticeListApi _api = NoticeListApi();
+  final AppbarApi _appBarApi = AppbarApi();
+  List<Map<String, dynamic>> notices = [];
+  List<Map<String, dynamic>> subjects = [];
+  bool isLoadingNotices = true;
+  bool isLoadingSubjects = true;
+  String? _selectedLectureId;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    _initData();
+    _initializeData();
   }
 
-  _initData()async{
-    String? id = await _ntl.getId();
-    String? accessToken = await _ntl.getAccessToken();
-    var info = await _ntl.fetchUserInfo(id!, accessToken!);
-    setState(() {
-      name = info['user_name'];
-      email = info['email'];
-    });
+  // 초기화 및 데이터 로드
+  Future<void> _initializeData() async {
+    try {
+      if (!widget.isAcademy) {
+        subjects = await _appBarApi.fetchAndStoreSubjects(); // userId 제거
+        if (subjects.isNotEmpty) {
+          _selectedLectureId = subjects.first['lecture_id'].toString();
+        }
+        setState(() {
+          isLoadingSubjects = false;
+        });
+      }
+      await _fetchNotices();
+    } catch (e) {
+      print("Error initializing data: $e");
+    }
+  }
+
+
+
+  // 공지 데이터 로드
+  Future<void> _fetchNotices() async {
+    try {
+      setState(() {
+        isLoadingNotices = true;
+      });
+      final lectureId = widget.isAcademy ? 0 : int.parse(_selectedLectureId!);
+      final response = await _api.fetchNotices(
+        lectureId: lectureId,
+        page: 1,
+        pageSize: 10,
+      );
+      setState(() {
+        notices = List<Map<String, dynamic>>.from(response['data']['notice_list']);
+        isLoadingNotices = false;
+      });
+    } catch (e) {
+      print("Error fetching notices: $e");
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: MyAppBar().build(context),
-      drawer: MenuDrawer(),
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if(!isAcademy!)
-              DropdownButton<String>(
-                value: _selectedCategory,
-                items: <String>['수업1', '수업2'].map((String value) {
+            if (!widget.isAcademy)
+              isLoadingSubjects
+                  ? Center(child: CircularProgressIndicator())
+                  : DropdownButton<String>(
+                value: _selectedLectureId,
+                items: subjects.map((subject) {
                   return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value, style: TextStyle(fontSize: 18.sp)),
+                    value: subject['lecture_id'].toString(),
+                    child: Text(subject['lecture_name'], style: TextStyle(fontSize: 18.sp)),
                   );
                 }).toList(),
                 onChanged: (newValue) {
                   setState(() {
-                    _selectedCategory = newValue!;
+                    _selectedLectureId = newValue!;
+                    _fetchNotices();
                   });
                 },
               ),
             Expanded(
-              child: ListView(
-                children: isAcademy==true
-                    ? _buildAcademyNotices()
-                    : _buildClassNotices(),
+              child: isLoadingNotices
+                  ? Center(child: CircularProgressIndicator())
+                  : notices.isEmpty
+                  ? Center(
+                child: Text(
+                  "공지사항이 없습니다.",
+                  style: TextStyle(fontSize: 16.sp),
+                ),
+              )
+                  : ListView.builder(
+                itemCount: notices.length,
+                itemBuilder: (context, index) {
+                  final notice = notices[index];
+                  return ListTile(
+                    title: Text(notice['title'], style: TextStyle(fontSize: 16.sp)),
+                    subtitle: Text(
+                      '작성자: ${notice['user_id']}, ${notice['created_at'].substring(0, 10)}',
+                      style: TextStyle(fontSize: 14.sp),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => NoticeDetail(noticeId: notice['notice_id']),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  List<Widget> _buildAcademyNotices() {
-    return [
-      ListTile(
-        title: Text("공지 1", style: TextStyle(fontSize: 16.sp)),
-        subtitle: Text("작성자: 김OO, 2024.07.01", style: TextStyle(fontSize: 14.sp)),
-        trailing: Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NoticeDetail()),
-          );
-        },
-      ),
-      ListTile(
-        title: Text("공지 2", style: TextStyle(fontSize: 16.sp)),
-        subtitle: Text("작성자: 김OO, 2024.06.05", style: TextStyle(fontSize: 14.sp)),
-        trailing: Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NoticeDetail()),
-          );
-        },
-      ),
-    ];
-  }
-
-  List<Widget> _buildClassNotices() {
-    return [
-      ListTile(
-        title: Text("수업 공지 1", style: TextStyle(fontSize: 16.sp)),
-        subtitle: Text("작성자: 박OO, 2024.08.01", style: TextStyle(fontSize: 14.sp)),
-        trailing: Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NoticeDetail()),
-          );
-        },
-      ),
-      ListTile(
-        title: Text("수업 공지 2", style: TextStyle(fontSize: 16.sp)),
-        subtitle: Text("작성자: 박OO, 2024.08.15", style: TextStyle(fontSize: 14.sp)),
-        trailing: Icon(Icons.arrow_forward_ios),
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NoticeDetail()),
-          );
-        },
-      ),
-    ];
   }
 }

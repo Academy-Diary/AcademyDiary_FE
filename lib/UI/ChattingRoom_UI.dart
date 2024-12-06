@@ -1,158 +1,179 @@
-import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ChattingRoomUI extends StatefulWidget {
-  const ChattingRoomUI({super.key});
+  final String roomId;
+
+  const ChattingRoomUI({required this.roomId, Key? key}) : super(key: key);
 
   @override
   State<ChattingRoomUI> createState() => _ChattingRoomUIState();
 }
 
 class _ChattingRoomUIState extends State<ChattingRoomUI> {
-  final _scrollController = ScrollController();
+  final FlutterSecureStorage storage = FlutterSecureStorage(); // SecureStorage 인스턴스
+  late IO.Socket socket;
+  List<Map<String, dynamic>> messages = [];
+  TextEditingController messageController = TextEditingController();
+  String? userId; // 저장된 ID를 담을 변수
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserId(); // ID를 불러옴
+  }
+
+  // ID 불러오기
+  Future<void> _loadUserId() async {
+    try {
+      final storedUserId = await storage.read(key: 'user_id'); // 저장된 ID 가져오기
+      if (storedUserId != null) {
+        setState(() {
+          userId = storedUserId; // 저장된 ID를 state에 저장
+        });
+        connectSocket(); // ID를 가져온 후 소켓 연결
+      } else {
+        print("User ID not found in storage");
+      }
+    } catch (e) {
+      print("Error loading user ID: $e");
+    }
+  }
+
+  void connectSocket() {
+    if (userId == null) return; // userId가 없으면 연결하지 않음
+
+    socket = IO.io(
+      'http://192.168.200.139:8000', // 서버 주소
+      IO.OptionBuilder()
+          .setTransports(['websocket'])
+          .disableAutoConnect()
+          .build(),
+    );
+
+    socket.onConnect((_) {
+      print("Connected to socket server");
+
+      socket.emit('create or join room', {
+        'roomId': widget.roomId,
+        'userId': userId, // 불러온 userId 사용
+      });
+
+      socket.on('chat message', (data) {
+        setState(() {
+          messages.add({
+            'userId': data['userId'] ?? 'unknown',
+            'message': data['message'] ?? '',
+            'timestamp': data['timestamp'] ?? '',
+          });
+        });
+      });
+
+      socket.on('all messages', (data) {
+        setState(() {
+          messages = List<Map<String, dynamic>>.from(data.map((msg) => {
+            'userId': msg['userId'] ?? 'unknown',
+            'message': msg['message'] ?? '',
+            'timestamp': msg['timestamp'] ?? '',
+          }));
+        });
+      });
+    });
+
+    socket.onError((err) {
+      print("Socket error: $err");
+    });
+
+    socket.connect();
+  }
+
+  void sendMessage() {
+    if (messageController.text.isNotEmpty && userId != null) {
+      final message = messageController.text;
+      socket.emit('chat message', {
+        'roomId': widget.roomId,
+        'userId': userId, // 저장된 ID를 사용
+        'message': message,
+      });
+      setState(() {
+        messages.add({
+          'userId': userId, // 저장된 ID를 로컬에서도 사용
+          'message': message,
+          'timestamp': DateTime.now().toString(),
+        });
+        messageController.clear();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    if (userId != null) {
+      socket.emit('leave room', {'roomId': widget.roomId, 'userId': userId});
+    }
+    socket.off('chat message');
+    socket.off('all messages');
+    socket.disconnect();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        title: Text("이름", style: TextStyle(color: Colors.black, fontSize: 32.sp),),
-        centerTitle: true,
-        leading: IconButton(
-          onPressed: (){
-            Navigator.pop(context);
-          },
-          icon: Icon(Icons.keyboard_arrow_left, color: Colors.black,size: 32.sp,),
-        ),
-      ), // 채팅방 전용 AppBar
+      appBar: AppBar(title: Text("채팅방")),
+      body: userId == null
+          ? Center(child: CircularProgressIndicator()) // ID를 로드할 때 로딩 표시
+          : Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+                final message = messages[index];
+                final senderId = message['userId'] ?? 'unknown';
+                final msg = message['message'] ?? '';
+                final timestamp = message['timestamp'] != null
+                    ? DateTime.parse(message['timestamp'])
+                    .toLocal()
+                    .toString()
+                    .substring(0, 16)
+                    : '';
 
-      body: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                controller: _scrollController,
-                scrollDirection: Axis.vertical,
-                child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                  child: Column(
+                return ListTile(
+                  title: Text(senderId),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('2024.10.01'),
-                      _getSenderMessage(context, "이름", "메세지1", "08:30", false),
-                      _getSenderMessage(context, "이름", "연속된 메세지입니다. ", "08:31", true),
-                      _getSenderMessage(context, "이름", "연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?연속된 메세지입니다. 근데 길이가 매우 길어진 근데 조금 더 길어지면?", "08:32", true),
-                      SizedBox(height: 20.h,),
-                      _getReceiverMessage(context, "내메세지", "08:33", true),
+                      Text(msg),
+                      SizedBox(height: 5),
+                      Text(timestamp,
+                          style: TextStyle(
+                              fontSize: 12, color: Colors.grey)),
                     ],
                   ),
-                )
-              ),
+                );
+              },
             ),
-            Row(
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
               children: [
-                SizedBox(
-                  width: 310.w,
-                  height: 60.h,
-                  child: Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: TextField(
-                      onTap: (){
-                        _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: Duration(milliseconds: 300), curve: Curves.linear);
-                      },
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(
-                        ),
-                      ),
-                      textAlignVertical: TextAlignVertical.center,
+                Expanded(
+                  child: TextField(
+                    controller: messageController,
+                    decoration: InputDecoration(
+                      hintText: "메시지를 입력하세요",
+                      border: OutlineInputBorder(),
                     ),
                   ),
                 ),
-                IconButton(onPressed: (){}, icon: Icon(Icons.send, size: 40,))
-              ],
-            )
-          ],
-        ),
-    );
-  }
-
-  Widget _getSenderMessage(context, String name, String msg, String time, bool isContinue){
-    double defaultPadding = 10;
-
-    if(!isContinue)
-      defaultPadding = 1;
-    return Padding(
-      padding: EdgeInsets.only(top: defaultPadding),
-      child: Row(
-        children: [
-          if(!isContinue)
-          CircleAvatar(foregroundImage: AssetImage('img/default.png'), radius: 18.w,),
-          if(isContinue)
-            SizedBox(width: 36.w,),
-          Padding(
-            padding: EdgeInsets.only(left: 5.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if(!isContinue)
-                  Text(name),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Container(
-                      constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6), // 텍스트의 최대 너비 설정
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: Color(0xFFD9D9D9),
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(20),
-                          bottomRight: Radius.circular(20),
-                          bottomLeft: Radius.circular(20),
-                        ),
-                      ),
-                      child: Padding(
-                        padding: EdgeInsets.only(left: 10, right: 10),
-                        child: Text(msg),
-                      ),
-                    ),
-                    Text(time)
-                  ],
+                IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: sendMessage,
                 ),
               ],
-            ),
-          ),
-        ],
-      )
-    );
-  }
-
-  Widget _getReceiverMessage(context, String msg, String time, bool isRead){
-    return Padding(
-      padding: EdgeInsets.only(top: 5),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if(isRead)
-                  Text("1"),
-              Text(time),
-            ],
-          ),
-          Container(
-            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.6), // 텍스트의 최대 너비 설정
-            padding: EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Color(0xFFD9D9D9),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                bottomRight: Radius.circular(20),
-                bottomLeft: Radius.circular(20),
-              ),
-            ),
-            child: Padding(
-              padding: EdgeInsets.only(left: 10, right: 10),
-              child: Text(msg),
             ),
           ),
         ],

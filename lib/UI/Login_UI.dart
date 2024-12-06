@@ -1,3 +1,4 @@
+import 'package:academy_manager/UI/MyPage_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -6,7 +7,6 @@ import 'package:academy_manager/UI/AfterSignup_UI.dart';
 import 'package:academy_manager/API/Login_API.dart'; // LoginService import
 import 'package:academy_manager/UI/FindId_UI.dart';
 import 'package:academy_manager/UI/ResetPassword_UI.dart';
-import 'package:dio/dio.dart';  // Dio 패키지 import
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -19,35 +19,67 @@ class _LoginpageState extends State<LoginPage> {
   // 입력 받은 아이디/비밀번호를 가져오기 위한 컨트롤러
   TextEditingController _idController = TextEditingController();
   TextEditingController _pwController = TextEditingController();
-  bool isAutoLogin = false;  // 자동 로그인 체크 여부 저장 변수
-  final LoginApi loginApi = LoginApi();  // LoginService 인스턴스 생성
+  bool isAutoLogin = false; // 자동 로그인 체크 여부 저장 변수
+  final LoginApi loginApi = LoginApi(); // LoginService 인스턴스 생성
 
   @override
   Widget build(BuildContext context) {
-    const mainColor = Color(0xff565D6D);
-    const backColor = Color(0xffD9D9D9);
-
     return Scaffold(
-      backgroundColor: backColor,
+      backgroundColor: Colors.white, // 배경 흰색
+      appBar: AppBar(
+        title: Text(
+          "아카데미 다이어리",
+          style: TextStyle(
+            fontSize: 20.sp,
+            fontFamily: 'PretendardSemiBold',
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+        backgroundColor: Color(0xFFEEEBDD), // 헤더바 색상
+        elevation: 0, // 그림자 없앰
+        leading: IconButton(
+          icon: Icon(Icons.menu, color: Color(0xFF064420)), // 햄버거 메뉴 색상
+          onPressed: () {},
+        ),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.notifications, color: Color(0xFF064420)), // 알림 아이콘 색상
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: Icon(Icons.person, color: Color(0xFF064420)), // 마이페이지 아이콘 색상
+            onPressed: () {},
+          ),
+        ],
+      ),
       body: SafeArea(
-        child: Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 20.w),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              SizedBox(height: 50.h), // 화면 상단 여백
+              Icon(Icons.person, size: 60.sp, color: Colors.black),
+              SizedBox(height: 20.h),
               Text(
-                "Log in",
+                "로그인 하기",
                 style: TextStyle(
-                  fontSize: 40.0.sp,
+                  fontSize: 28.sp,
+                  fontFamily: 'PretendardSemiBold',
+                  color: Colors.black,
                 ),
               ),
-              104.verticalSpace,
-              _buildTextField(_idController, "ID", true),
-              30.verticalSpace,
-              _buildTextField(_pwController, "Password", false, isPassword: true),
-              13.verticalSpace,
+              SizedBox(height: 40.h),
+              _buildTextField(_idController, "아이디"),
+              SizedBox(height: 20.h),
+              _buildTextField(_pwController, "비밀번호", isPassword: true),
+              SizedBox(height: 10.h),
               _buildAutoLoginCheckbox(),
-              30.verticalSpace,
-              _buildLoginButton(mainColor),
+              SizedBox(height: 30.h),
+              _buildLoginButton(),
+              SizedBox(height: 20.h),
               _buildFooterButtons(),
             ],
           ),
@@ -56,53 +88,54 @@ class _LoginpageState extends State<LoginPage> {
     );
   }
 
-  // 로그인 버튼 생성
-  Widget _buildLoginButton(Color mainColor) {
+  Widget _buildLoginButton() {
     return SizedBox(
       width: 342.0.w,
-      height: 63.0.h,
-      child: ElevatedButton(
+      height: 50.h,
+      child: ElevatedButton.icon(
         onPressed: _handleLogin,
-        child: Text(
+        icon: Icon(Icons.arrow_forward, size: 24.sp),
+        label: Text(
           "로그인",
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20.sp,
+            fontFamily: 'PretendardRegular',
             color: Colors.white,
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor: mainColor,
+          backgroundColor: Color(0xFF024F51),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.r),
+          ),
         ),
       ),
     );
   }
 
-  // 자동 로그인 체크박스
   Widget _buildAutoLoginCheckbox() {
-    return SizedBox(
-      width: 341.99.w,
-      height: 51.43.h,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Checkbox(
-            value: isAutoLogin,
-            onChanged: (bool? value) {
-              setState(() {
-                isAutoLogin = value!;
-              });
-            },
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Checkbox(
+          value: isAutoLogin,
+          onChanged: (bool? value) {
+            setState(() {
+              isAutoLogin = value!;
+            });
+          },
+        ),
+        Text(
+          "자동로그인",
+          style: TextStyle(
+            fontSize: 18.sp,
+            fontFamily: 'PretendardRegular',
           ),
-          Text(
-            "자동로그인",
-            style: TextStyle(fontSize: 20.0),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  // 로그인 처리 함수
   Future<void> _handleLogin() async {
     String id = _idController.text;
     String pw = _pwController.text;
@@ -113,104 +146,83 @@ class _LoginpageState extends State<LoginPage> {
     }
 
     try {
-      var response = await loginApi.login(id, pw);  // 로그인 API 호출
-      await loginApi.saveLoginInfo(id, pw, isAutoLogin);  // 자동 로그인 정보 저장
-      await loginApi.saveTokens(response, id);  // 토큰 저장
+      var response = await loginApi.login(id, pw);
+      await loginApi.saveTokens(response, id);
 
-      // academy_id를 저장
-      String academyId = response.data['user']['academy_id'];
-      await loginApi.saveAcademyId(academyId);
+      String? storedId = await LoginApi.storage.read(key: 'user_id');
+      print("로그인 후 저장된 user_id: $storedId");
 
-      if (response.data['user']['role'] == "STUDENT" || response.data['user']['role'] == "PARENT") {
-        _navigateToNextPage(response, id);  // 다음 페이지로 이동
+      if (storedId != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AfterLoginPage(
+              name: response.data['user']['user_name'],
+              email: response.data['user']['email'],
+              id: id,
+              phone: response.data['user']['phone_number'],
+              role: response.data['user']['role'],
+            ),
+          ),
+        );
       } else {
-        _showErrorSnackBar("학생과 학부모만 로그인이 가능합니다.");
+        Fluttertoast.showToast(msg: "로그인에 실패했습니다. ID 저장 오류.");
       }
     } catch (err) {
-      print(err);
+      print("로그인 중 오류 발생: $err");
+      Fluttertoast.showToast(msg: "로그인 중 오류가 발생했습니다.");
     }
   }
 
-
-  // ID 및 비밀번호 입력 필드
-  Widget _buildTextField(TextEditingController controller, String hintText, bool autofocus, {bool isPassword = false}) {
-    return SizedBox(
-      width: 341.99.w,
-      height: 51.43.h,
-      child: TextField(
-        controller: controller,
-        autofocus: autofocus,
-        obscureText: isPassword,
-        style: TextStyle(fontSize: 18),
-        decoration: InputDecoration(hintText: hintText, hintStyle: TextStyle(fontSize: 18)),
+  Widget _buildTextField(TextEditingController controller, String hintText,
+      {bool isPassword = false}) {
+    return TextField(
+      controller: controller,
+      obscureText: isPassword,
+      style: TextStyle(fontSize: 18.sp, fontFamily: 'PretendardRegular'),
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(fontSize: 18.sp, fontFamily: 'PretendardLight'),
+        contentPadding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 15.w),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.r),
+          borderSide: BorderSide(color: Colors.grey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30.r),
+          borderSide: BorderSide(color: Colors.black),
+        ),
       ),
     );
   }
 
-  // 하단 버튼 (ID 찾기, 비밀번호 찾기)
   Widget _buildFooterButtons() {
-    return SizedBox(
-      width: 280.w,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          TextButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => FindIdPage()));
-            },
-            child: Text(
-              "ID 찾기",
-              style: TextStyle(fontSize: 24.0, color: Color(0xff6A6666)),
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => FindIdPage()));
+          },
+          child: Text(
+            "아이디 찾기",
+            style: TextStyle(fontSize: 16.sp, fontFamily: 'PretendardRegular', color: Colors.black),
           ),
-          TextButton(
-            onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => ResetPasswordPage()));
-            },
-            child: Text(
-              "비밀번호 찾기",
-              style: TextStyle(fontSize: 24.0, color: Color(0xff6A6666)),
-            ),
+        ),
+        Text("|", style: TextStyle(fontSize: 16.sp)),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+                context, MaterialPageRoute(builder: (context) => ResetPasswordPage()));
+          },
+          child: Text(
+            "비밀번호 찾기",
+            style: TextStyle(fontSize: 16.sp, fontFamily: 'PretendardRegular', color: Colors.black),
           ),
-        ],
-      ),
-    );
-  }
-
-  // 에러 스낵바 표시
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-        backgroundColor: Colors.redAccent,
-      ),
-    );
-  }
-
-  // 로그인 후 다음 페이지로 이동
-  void _navigateToNextPage(Response response, String id) {
-    String name = response.data['user']['user_name'];
-    String email = response.data['user']['email'];
-    String phone = response.data['user']['phone_number'];
-    String role = response.data['user']['role'];
-
-    if (response.data['userStatus'] != null && response.data['userStatus']['status'] == "APPROVED") {
-      loginApi.saveUserInfo(response.data); // 이름, 이메일, 전화번호를 secure_storage에 저장
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AfterLoginPage(role: role, name: name, email: email, id: id, phone: phone),
         ),
-      );
-    } else {
-      String role = response.data['user']['role'];
-      int roleValue = (role == "STUDENT") ? 1 : 0;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => AfterSignUp(name: name, role: roleValue, isKey: false),
-        ),
-      );
-    }
+      ],
+    );
   }
 }

@@ -8,18 +8,31 @@ import 'package:academy_manager/API/MemberInfoEdit_API.dart';
 import 'package:email_validator/email_validator.dart';
 
 class MemberInfoEdit extends StatefulWidget {
-  String name, email, phone, id;
-  FileImage image;
+  final String name, email, phone, id;
+  final ImageProvider image; // 타입을 ImageProvider로 변경
 
-  MemberInfoEdit({super.key, required this.name, required this.email, required this.phone, required this.id, required this.image});
+  MemberInfoEdit({
+    super.key,
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.id,
+    required this.image,
+  });
 
   @override
-  State<MemberInfoEdit> createState() => _MemberInfoEditState(name: name, email: email, phone: phone, id: id, image: image);
+  State<MemberInfoEdit> createState() => _MemberInfoEditState(
+    name: name,
+    email: email,
+    phone: phone,
+    id: id,
+    image: image,
+  );
 }
 
 class _MemberInfoEditState extends State<MemberInfoEdit> {
-  String name, email, phone, id;
-  FileImage image;
+  final String name, email, phone, id;
+  final ImageProvider image;
   XFile? newImage;
   bool isChangeImage = false;
 
@@ -27,7 +40,13 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
   final _globalKey = GlobalKey<FormState>();
   final MemberInfoApi memberInfoApi = MemberInfoApi();
 
-  _MemberInfoEditState({required this.name, required this.email, required this.phone, required this.id, required this.image});
+  _MemberInfoEditState({
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.id,
+    required this.image,
+  });
 
   @override
   void initState() {
@@ -54,14 +73,17 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
         child: Column(
           children: [
             CircleAvatar(
-              backgroundImage: newImage == null ? image : FileImage(File(newImage!.path)),
+              backgroundImage: newImage == null
+                  ? image
+                  : FileImage(File(newImage!.path)),
               radius: 50.r,
               backgroundColor: Colors.grey[300],
             ),
             SizedBox(height: 8.h),
             TextButton(
-                onPressed: () => changeImage(),
-                child: Text('사진 편집', style: TextStyle(fontSize: 14.sp))),
+              onPressed: changeImage,
+              child: Text('사진 편집', style: TextStyle(fontSize: 14.sp)),
+            ),
             SizedBox(height: 20.h),
             _buildInfoForm(),
             Spacer(),
@@ -69,13 +91,20 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 24.w), backgroundColor: Color(0xFF565D6D)),
+                  style: ElevatedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(
+                        vertical: 12.h, horizontal: 24.w),
+                    backgroundColor: Color(0xFF565D6D),
+                  ),
                   onPressed: () {
                     if (_globalKey.currentState!.validate()) {
                       submit();
                     }
                   },
-                  child: Text('저장', style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+                  child: Text(
+                    '저장',
+                    style: TextStyle(color: Colors.white, fontSize: 16.sp),
+                  ),
                 ),
               ],
             ),
@@ -88,13 +117,14 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
   Widget _buildInfoForm() {
     return Container(
       padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2.w)),
+      decoration:
+      BoxDecoration(border: Border.all(color: Colors.black, width: 2.w)),
       child: Form(
         key: _globalKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("name: " + name, style: TextStyle(fontSize: 16.sp)),
+            Text("name: $name", style: TextStyle(fontSize: 16.sp)),
             SizedBox(height: 10.h),
             TextFormField(
               controller: controller[0],
@@ -128,7 +158,8 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
             TextFormField(
               validator: (value) {
                 if (value.toString().isEmpty) return "전화번호를 입력하세요";
-                if (!RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$').hasMatch(value.toString())) {
+                if (!RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$')
+                    .hasMatch(value.toString())) {
                   return "올바른 형식의 휴대폰번호를 입력하세요";
                 }
                 return null;
@@ -144,14 +175,17 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
 
   void submit() async {
     try {
-      var response = await memberInfoApi.updateBasicInfo(id, controller[0].text, controller[1].text, controller[2].text);
+      var response = await memberInfoApi.updateBasicInfo(
+          id, controller[0].text, controller[1].text, controller[2].text);
 
       if (isChangeImage) {
         await memberInfoApi.updateProfileImage(id, newImage!);
       }
 
       if (response.statusCode == 200) {
-        Fluttertoast.showToast(msg: "정상적으로 변경이 완료되었습니다.", backgroundColor: Colors.grey);
+        Fluttertoast.showToast(
+            msg: "정상적으로 변경이 완료되었습니다.",
+            backgroundColor: Colors.grey);
         Navigator.pop(context, {
           'refresh': true,
           if (isChangeImage) 'profile': File(newImage!.path),

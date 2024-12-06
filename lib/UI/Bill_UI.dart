@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
 import 'package:academy_manager/API/Bill_API.dart';
 
 class Bill extends StatefulWidget {
@@ -12,21 +11,34 @@ class Bill extends StatefulWidget {
 }
 
 class _BillState extends State<Bill> {
-  BillApi _bill = BillApi();
+  final BillApi _billApi = BillApi();
   String? name;
+  List<Map<String, dynamic>> bills = [];
+  bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _initializeData();
   }
 
-  _initializeData() async{
-    name = await _bill.getName();
-    setState(() {
-
-    });
+  Future<void> _initializeData() async {
+    try {
+      name = await _billApi.getName();
+      String? userId = await _billApi.getUserId();
+      if (userId != null) {
+        bills = await _billApi.fetchBills(userId);
+      } else {
+        throw Exception("사용자 ID를 가져올 수 없습니다.");
+      }
+    } catch (e) {
+      errorMessage = e.toString();
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   @override
@@ -35,71 +47,90 @@ class _BillState extends State<Bill> {
       appBar: MyAppBar().build(context),
       drawer: MenuDrawer(),
       body: SafeArea(
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                name.toString()+ "님 학원비 청구서",
-                style: TextStyle(fontSize: 24.sp, ),
+        child: isLoading
+            ? Center(child: CircularProgressIndicator())
+            : errorMessage != null
+            ? Center(
+          child: Text(
+            "오류 발생: $errorMessage",
+            style: TextStyle(color: Colors.red, fontSize: 16.sp),
+          ),
+        )
+            : ListView(
+          padding: EdgeInsets.all(16.w),
+          children: [
+            Center(
+              child: Text(
+                '$name님 학원비 청구서',
+                style: TextStyle(fontSize: 24.sp),
               ),
-              18.verticalSpace, // 제목과 청구서 사이 빈 공간 설정
-              Container(
-                width: 320.w,
-                height: 320.h,
-                decoration: BoxDecoration(
-                  color: Color(0xFFD9D9D9),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Align(
-                        child: Text(
-                          "미납부",
-                          style: TextStyle(color: Colors.red, fontSize: 12.sp, fontWeight: FontWeight.bold),
-                        ),
-                        alignment: Alignment.topRight,
-                      ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                            "이름 : $name\n수강반: 수학집중반\n\n수업료: ₩300,000\n\n교재비: ₩0",
-                          style: TextStyle(fontSize: 18.sp),
-                          textAlign: TextAlign.start,
-                        ),
-                      ),
-                      Spacer(),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          "Total: ₩300,000",
-                          style: TextStyle(fontSize: 18.sp),
-                        ),
-                      )
-                    ],
-                  ),
-                ),
-              ),
-              100.verticalSpace,
-              SizedBox(
+            ),
+            18.verticalSpace,
+            ...bills.map((bill) => _buildBillCard(bill)).toList(),
+            100.verticalSpace,
+            Center(
+              child: SizedBox(
                 width: 188.w,
                 height: 60.h,
                 child: ElevatedButton(
-                  onPressed: (){
-                    // 결제하기 버튼 클릭 시 결제 창 이동
-                    // TODO: 결제시스템 연동 -> 웹페이지로? 아님 native 화면으로?
+                  onPressed: () {
+                    // TODO: 결제 기능 추가
+                    print('결제하기 버튼 클릭');
                   },
-                  child: Text("결제하기", style: TextStyle(fontSize: 18.sp),),
-                  style: ButtonStyle(
-
+                  child: Text(
+                    "결제하기",
+                    style: TextStyle(fontSize: 18.sp),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBillCard(Map<String, dynamic> bill) {
+    bool isPaid = bill['paid'] ?? false;
+    return Container(
+      width: 320.w,
+      margin: EdgeInsets.symmetric(vertical: 8.h),
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: Color(0xFFD9D9D9),
+        borderRadius: BorderRadius.circular(8.r),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Align(
+            alignment: Alignment.topRight,
+            child: Text(
+              isPaid ? "납부 완료" : "미납부",
+              style: TextStyle(
+                color: isPaid ? Colors.green : Colors.red,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          SizedBox(height: 10.h),
+          Text(
+            "이름 : $name\n"
+                "수강반: ${bill['class_name']}\n"
+                "수업료: ₩${bill['amount']}\n"
+                "납부 기한: ${bill['deadline']}",
+            style: TextStyle(fontSize: 16.sp),
+          ),
+          SizedBox(height: 10.h),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              "Total: ₩${bill['amount']}",
+              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
       ),
     );
   }
