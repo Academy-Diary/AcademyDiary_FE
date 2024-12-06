@@ -10,7 +10,6 @@ class AppbarApi {
   // 토큰 인터셉터 추가
   Future<void> addTokenInterceptors(String? token, String? refreshToken) async {
     _dio.addResponseInterceptor('Content-Type', 'application/json');
-
     if (token != null) {
       _dio.addResponseInterceptor('Authorization', 'Bearer $token');
     } else {
@@ -38,10 +37,10 @@ class AppbarApi {
 
   // 사용자 정보 가져오기
   Future<Map<String, dynamic>> getInfo() async {
-    Map<String, dynamic> ret_value = {};
-    ret_value['user_name'] = await storage.read(key: 'user_name');
-    ret_value['email'] = await storage.read(key: 'email');
-    return ret_value;
+    return {
+      'user_name': await storage.read(key: 'user_name'),
+      'email': await storage.read(key: 'email'),
+    };
   }
 
   // 토큰 가져오기
@@ -53,9 +52,13 @@ class AppbarApi {
     return await storage.read(key: 'refreshToken');
   }
 
-  // userId 가져오기 (추가)
+  // userId 가져오기
   Future<String?> getUserId() async {
-    return await storage.read(key: 'id');
+    final userId = await storage.read(key: 'user_id'); // Key 수정
+    if (userId == null || userId.isEmpty) {
+      throw Exception("user_id가 저장되어 있지 않습니다.");
+    }
+    return userId;
   }
 
   // academyId 가져오기
@@ -76,28 +79,23 @@ class AppbarApi {
       }
 
       List<dynamic> data = response.data['lectures'];
-      return data.map((lecture) => {
+      final subjects = data.map((lecture) => {
         'lecture_id': lecture['lecture_id'],
-        'lecture_name': lecture['lecture_name']
+        'lecture_name': lecture['lecture_name'],
       }).toList();
+
+      await storage.write(key: 'storedSubjects', value: jsonEncode(subjects)); // 저장
+      return subjects;
     } catch (err) {
       if (err is DioError) {
         print('DioError 발생: ${err.message}');
         print('서버 응답: ${err.response?.data ?? "응답 데이터가 없습니다."}');
-
-        if (err.response?.statusCode == 404) {
-          throw Exception("수강 중인 강의가 없습니다.");
-        } else if (err.response?.statusCode == 400) {
-          throw Exception("유효한 user_id가 제공되지 않았습니다.");
-        } else {
-          throw Exception("Failed to load subjects: ${err.response?.statusCode} - ${err.response?.data}");
-        }
       }
       throw Exception("Failed to load subjects: $err");
     }
   }
 
-  // **추가된 메서드: 저장된 과목 목록 가져오기**
+  // 저장된 과목 목록 가져오기
   Future<List<Map<String, dynamic>>> getStoredSubjects() async {
     final storedSubjects = await storage.read(key: 'storedSubjects');
     if (storedSubjects != null) {
@@ -106,17 +104,35 @@ class AppbarApi {
     return [];
   }
 
-  // **추가된 메서드: 과목 목록 저장하기**
-  Future<List<Map<String, dynamic>>> fetchAndStoreSubjects(String userId) async {
+  // API와 저장소 통합 호출
+  Future<List<Map<String, dynamic>>> fetchAndStoreSubjects() async {
     try {
-      final subjects = await fetchSubjects(userId); // API 호출
-      await storage.write(
-        key: 'storedSubjects',
-        value: jsonEncode(subjects), // JSON 형식으로 저장
-      );
+      // Access Token 가져오기
+      final accessToken = await getAccessToken();
+      final refreshToken = await getRefreshToken();
+
+      if (accessToken == null || refreshToken == null) {
+        throw Exception("Access Token 또는 Refresh Token이 유효하지 않습니다.");
+      }
+
+      // Token 설정
+      await addTokenInterceptors(accessToken, refreshToken);
+
+      // userId 가져오기
+      final userId = await getUserId();
+      if (userId == null) {
+        throw Exception("userId가 유효하지 않습니다.");
+      }
+
+      // 과목 API 호출
+      final subjects = await fetchSubjects(userId);
       return subjects;
     } catch (err) {
-      throw Exception("Failed to fetch and store subjects: $err");
+      print("Error fetching and storing subjects: $err");
+      return [];
     }
   }
+
+
+
 }

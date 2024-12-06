@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:academy_manager/API/MyPage_API.dart';
 
 class MyPage extends StatefulWidget {
@@ -14,7 +13,7 @@ class MyPage extends StatefulWidget {
 
 class _MyPageState extends State<MyPage> {
   final MyPageApi myPageApi = MyPageApi();
-  File? file;
+  String? profileImageUrl; // 서버에서 제공한 프로필 이미지 URL
   String? name = "", id = "", email = "", phone = "", role = "", family = "";
 
   @override
@@ -26,35 +25,39 @@ class _MyPageState extends State<MyPage> {
   }
 
   Future<void> _loadData() async {
-    await myPageApi.initTokens();
+    try {
+      await myPageApi.initTokens();
 
-    // id가 null인지 확인
-    String? userId = await MyPageApi.storage.read(key: 'id');
+      String? userId = await MyPageApi.storage.read(key: 'user_id');
+      print("불러온 ID: $userId"); // 디버깅용 로그 추가
 
-    if (userId != null) {
-      // 사용자 정보 및 프로필 이미지 가져오기
+      if (userId == null || userId.isEmpty) {
+        print("ID not found in storage.");
+        Fluttertoast.showToast(msg: "ID를 찾을 수 없습니다. 다시 로그인해주세요.");
+        return;
+      }
+
+      // 사용자 정보 및 이미지 URL 가져오기
+      print("Fetching user info for ID: $userId");
       var userInfo = await myPageApi.fetchUserInfo(userId);
-      print(userInfo);  // 여기에 추가해서 API 응답 데이터를 확인
+      var imageUrl = await myPageApi.downloadUserProfileImage(userId);
 
-      var profileImage = await myPageApi.downloadUserProfileImage(userId);
-
-      setState(() {
-        id = userId; // id 반영
-        name = userInfo['data']['user_name'];
-        email = userInfo['data']['email'];
-        phone = userInfo['data']['phone_number'];
-
-        role = userInfo['data']['role'] == "STUDENT" ? "학생" : "학부모";
-        family = userInfo['data']['family'] ?? ""; // family 정보 불러오기
-        file = profileImage;
-
-        if (userInfo['data']['family'] != null && userInfo['data']['family'].isNotEmpty) {
-          print('family: ${userInfo['data']['family']}');  // family 값 출력
-        }
-      });
-    } else {
-      // id가 null일 경우 처리
-      Fluttertoast.showToast(msg: "ID를 찾을 수 없습니다.");
+      if (mounted) {
+        setState(() {
+          id = userId;
+          name = userInfo['data']['user_name'] ?? '';
+          email = userInfo['data']['email'] ?? '';
+          phone = userInfo['data']['phone_number'] ?? '';
+          role = userInfo['data']['role'] == "STUDENT" ? "학생" : "학부모";
+          family = userInfo['data']['family'] ?? '';
+          profileImageUrl = imageUrl ?? ''; // 이미지 URL
+        });
+      }
+    } catch (e) {
+      print("Error loading user data: $e");
+      if (mounted) {
+        Fluttertoast.showToast(msg: "회원 정보를 불러오는 중 오류가 발생했습니다.");
+      }
     }
   }
 
@@ -70,9 +73,9 @@ class _MyPageState extends State<MyPage> {
           children: [
             Center(
               child: CircleAvatar(
-                foregroundImage: (file != null && file!.existsSync())
-                    ? FileImage(file!)
-                    : AssetImage('img/default.png') as ImageProvider, // 기본 이미지 경로
+                foregroundImage: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+                    ? NetworkImage(profileImageUrl!)
+                    : AssetImage('img/default.png') as ImageProvider,
                 radius: 60.r,
                 backgroundColor: Colors.grey[300],
               ),
@@ -81,7 +84,7 @@ class _MyPageState extends State<MyPage> {
             _buildUserInfo(),
             if (role == "학부모" && family != null && family!.isNotEmpty) ...[
               SizedBox(height: 20.h),
-              _buildStudentInfo(),  // 학생 정보 표시하는 위젯 추가
+              _buildStudentInfo(),
             ],
             Spacer(),
             _buildEditButton(),
@@ -132,19 +135,22 @@ class _MyPageState extends State<MyPage> {
         backgroundColor: Color(0xFF565D6D),
       ),
       onPressed: () async {
-        // 회원정보 수정 화면으로 이동
         var refresh = await Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => MemberInfoEdit(
-            name: name.toString(),
-            email: email.toString(),
-            phone: phone.toString(),
-            id: id.toString(),
-            image: FileImage(file!),
-          )),
+          MaterialPageRoute(
+            builder: (context) => MemberInfoEdit(
+              name: name.toString(),
+              email: email.toString(),
+              phone: phone.toString(),
+              id: id.toString(),
+              image: profileImageUrl != null && profileImageUrl!.isNotEmpty
+                  ? NetworkImage(profileImageUrl!)
+                  : AssetImage('img/default.png'), // 기본 이미지 전달
+            ),
+          ),
         );
         if (refresh['refresh']) {
-          _loadData(); // 데이터 다시 로드
+          _loadData();
         }
       },
       child: Text('회원정보 수정', style: TextStyle(color: Colors.white, fontSize: 16.sp)),

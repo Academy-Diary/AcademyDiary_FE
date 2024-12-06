@@ -6,6 +6,7 @@ import 'NoticeDetail_UI.dart';
 
 class AfterLoginPage extends StatelessWidget {
   final String name, id, email, phone, role;
+
   AfterLoginPage({
     super.key,
     required this.name,
@@ -24,77 +25,78 @@ class AfterLoginPage extends StatelessWidget {
     return Scaffold(
       appBar: MyAppBar().build(context),
       drawer: MenuDrawer(),
-      body: Padding(
-        padding: EdgeInsets.all(16.0.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Text(
-                '$name님 환영합니다',
-                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Text(
+                  '$name님 환영합니다',
+                  style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-            SizedBox(height: 20.h),
-            Center(
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: mainColor,
-                    padding: EdgeInsets.symmetric(vertical: 16.0.h),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0.r),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => Attendance(role: role, name: name),
+              SizedBox(height: 20.h),
+              Center(
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: mainColor,
+                      padding: EdgeInsets.symmetric(vertical: 16.0.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.0.r),
                       ),
-                    );
-                  },
-                  child: Text(
-                    role == 'STUDENT' ? '출석인증하기' : '학생출석확인',
-                    style: TextStyle(fontSize: 22.sp, color: Colors.white),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Attendance(role: role, name: name),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      role == 'STUDENT' ? '출석인증하기' : '학생출석확인',
+                      style: TextStyle(fontSize: 22.sp, color: Colors.white),
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 20.h),
-            Text(
-              "오늘의 수업",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10.h),
-            Container(
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 2.0.w),
+              SizedBox(height: 20.h),
+              Text(
+                "오늘의 수업",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: EdgeInsets.all(16.0.w),
-                      child: Text('영어', style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(height: 10.h),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 2.0.w),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.all(16.0.w),
+                        child: Text('영어', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
                     ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(16.0.w),
-                    child: Text('16:00~18:00', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
+                    Padding(
+                      padding: EdgeInsets.all(16.0.w),
+                      child: Text('16:00~18:00', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            SizedBox(height: 20.h),
-            Text(
-              "학원 전체공지",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10.h),
-            Expanded(
-              child: Container(
+              SizedBox(height: 20.h),
+              Text(
+                "학원 전체공지",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10.h),
+              Container(
+                height: 200.h,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.black, width: 2.0.w),
                 ),
@@ -104,27 +106,25 @@ class AfterLoginPage extends StatelessWidget {
                       title: '공지 1',
                       author: '길영',
                       date: '2024.07.01',
-                      noticeId: '1', // 공지 ID 추가
+                      noticeId: '1',
                     ),
                     NoticeTile(
                       title: '공지 2',
                       author: '길영',
                       date: '2024.07.05',
-                      noticeId: '2', // 공지 ID 추가
+                      noticeId: '2',
                     ),
                   ],
                 ),
               ),
-            ),
-            SizedBox(height: 20.h),
-            Text(
-              "오늘의 날씨",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10.h),
-            SizedBox(
-              width: double.infinity,
-              child: Container(
+              SizedBox(height: 20.h),
+              Text(
+                "오늘의 날씨",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10.h),
+              Container(
+                width: double.infinity,
                 color: mainColor,
                 padding: EdgeInsets.all(20.0.w),
                 child: Column(
@@ -147,8 +147,8 @@ class AfterLoginPage extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -159,13 +159,13 @@ class NoticeTile extends StatelessWidget {
   final String title;
   final String author;
   final String date;
-  final String noticeId; // 공지 ID 추가
+  final String noticeId;
 
   NoticeTile({
     required this.title,
     required this.author,
     required this.date,
-    required this.noticeId, // 공지 ID 받기
+    required this.noticeId,
   });
 
   @override
@@ -177,7 +177,7 @@ class NoticeTile extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => NoticeDetail(noticeId: noticeId), // 공지 ID 전달
+            builder: (context) => NoticeDetail(noticeId: noticeId),
           ),
         );
       },

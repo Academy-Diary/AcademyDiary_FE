@@ -4,38 +4,54 @@ import 'package:dio/dio.dart';
 
 class ScoreApi {
   final dio = MyDio();
-  static final storage = FlutterSecureStorage();  // FlutterSecureStorage 사용
+  static final storage = FlutterSecureStorage(); // FlutterSecureStorage 사용
 
+  // 토큰 초기화
   Future<void> initTokens() async {
-    String? accessToken = await storage.read(key: 'accessToken');  // storage 사용
+    String? accessToken = await storage.read(key: 'accessToken');
     if (accessToken != null) {
       dio.addResponseInterceptor('Authorization', 'Bearer $accessToken');
+      print("Access token added to headers.");
     } else {
-      throw Exception('토큰을 찾을 수 없습니다.');
+      throw Exception('Access token not found.');
     }
   }
 
   // 사용자 ID를 storage에서 가져옴
   Future<String> getUserId() async {
-    return await storage.read(key: 'id') ?? "";
+    String? userId = await storage.read(key: 'user_id');
+    if (userId != null) {
+      print("Fetched user_id: $userId");
+      return userId;
+    } else {
+      throw Exception('User ID not found in storage.');
+    }
   }
 
-  // 학원 ID를 storage에서 가져옴 (수정된 부분)
+  // 학원 ID를 storage에서 가져옴
   Future<String> getAcademyId() async {
     String? academyId = await storage.read(key: 'academy_id');
-    print('academy_id: $academyId');  // 여기서 academy_id를 확인
-    return academyId ?? "";
+    if (academyId != null) {
+      print("Fetched academy_id: $academyId");
+      return academyId;
+    } else {
+      throw Exception('Academy ID not found in storage.');
+    }
   }
 
-
-  // 시험 유형 조회 API 호출 (academy_id 추가)
+  // 시험 유형 조회 API 호출
   Future<List<Map<String, dynamic>>> fetchExamTypes(String academyId) async {
     try {
+      print("Fetching exam types for academyId: $academyId");
       var response = await dio.get('/exam-type/academy/$academyId');
-      List<Map<String, dynamic>> examTypes = List<Map<String, dynamic>>.from(response.data['data']['exam_types']);
+      print("Response: ${response.data}");
+
+      List<Map<String, dynamic>> examTypes =
+      List<Map<String, dynamic>>.from(response.data['data']['exam_types']);
       return examTypes;
     } catch (e) {
-      throw Exception('시험 유형을 가져오는 중 오류 발생: $e');
+      print("Error fetching exam types: $e");
+      throw Exception('Error while fetching exam types: $e');
     }
   }
 
@@ -43,15 +59,20 @@ class ScoreApi {
   Future<List<Map<String, dynamic>>> fetchScores({
     required String userId,
     required int lectureId,
-    required String examTypeId,  // examType -> examTypeId로 수정
+    required String examTypeId,
     required bool asc,
   }) async {
     try {
+      print("Fetching scores with the following parameters:");
+      print("User ID: $userId");
+      print("Lecture ID: $lectureId");
+      print("Exam Type ID: $examTypeId");
+      print("Ascending Order: $asc");
+
       var response = await dio.get(
         '/lecture/$lectureId/score?user_id=$userId&exam_type_id=$examTypeId&asc=$asc',
       );
 
-      // 응답 데이터를 Map으로 처리하여 필요한 값 추출
       final data = response.data['data'];
 
       if (data.containsKey('exam_data') && data['exam_data'] != null) {
@@ -64,7 +85,6 @@ class ScoreApi {
         print('Fetched exam_type_name: $examTypeName');
         print('Fetched exam_list: $examList');
 
-        // 각 시험 데이터에 exam_type_id와 exam_type_name 추가
         final scores = examList.map((score) {
           return {
             ...score,
@@ -75,11 +95,12 @@ class ScoreApi {
 
         return scores;
       } else {
-        // 만약 exam_data가 없을 경우 빈 리스트 반환
+        print("No exam data found.");
         return [];
       }
     } catch (e) {
-      throw Exception('성적을 가져오는 중 오류 발생: $e');
+      print("Error fetching scores: $e");
+      throw Exception('Error while fetching scores: $e');
     }
   }
 }

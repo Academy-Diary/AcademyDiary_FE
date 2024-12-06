@@ -19,7 +19,7 @@ class _NoticeListState extends State<NoticeList> {
   final AppbarApi _appBarApi = AppbarApi();
   List<Map<String, dynamic>> notices = [];
   List<Map<String, dynamic>> subjects = [];
-  bool isLoading = true;
+  bool isLoadingNotices = true;
   bool isLoadingSubjects = true;
   String? _selectedLectureId;
 
@@ -29,25 +29,31 @@ class _NoticeListState extends State<NoticeList> {
     _initializeData();
   }
 
+  // 초기화 및 데이터 로드
   Future<void> _initializeData() async {
     try {
       if (!widget.isAcademy) {
-        subjects = await _appBarApi.getStoredSubjects();
-        _selectedLectureId = subjects.first['lecture_id'].toString();
+        subjects = await _appBarApi.fetchAndStoreSubjects(); // userId 제거
+        if (subjects.isNotEmpty) {
+          _selectedLectureId = subjects.first['lecture_id'].toString();
+        }
+        setState(() {
+          isLoadingSubjects = false;
+        });
       }
       await _fetchNotices();
-      setState(() {
-        isLoadingSubjects = false;
-      });
     } catch (e) {
       print("Error initializing data: $e");
     }
   }
 
+
+
+  // 공지 데이터 로드
   Future<void> _fetchNotices() async {
     try {
       setState(() {
-        isLoading = true;
+        isLoadingNotices = true;
       });
       final lectureId = widget.isAcademy ? 0 : int.parse(_selectedLectureId!);
       final response = await _api.fetchNotices(
@@ -57,7 +63,7 @@ class _NoticeListState extends State<NoticeList> {
       );
       setState(() {
         notices = List<Map<String, dynamic>>.from(response['data']['notice_list']);
-        isLoading = false;
+        isLoadingNotices = false;
       });
     } catch (e) {
       print("Error fetching notices: $e");
@@ -75,7 +81,7 @@ class _NoticeListState extends State<NoticeList> {
           children: [
             if (!widget.isAcademy)
               isLoadingSubjects
-                  ? CircularProgressIndicator()
+                  ? Center(child: CircularProgressIndicator())
                   : DropdownButton<String>(
                 value: _selectedLectureId,
                 items: subjects.map((subject) {
@@ -92,8 +98,15 @@ class _NoticeListState extends State<NoticeList> {
                 },
               ),
             Expanded(
-              child: isLoading
+              child: isLoadingNotices
                   ? Center(child: CircularProgressIndicator())
+                  : notices.isEmpty
+                  ? Center(
+                child: Text(
+                  "공지사항이 없습니다.",
+                  style: TextStyle(fontSize: 16.sp),
+                ),
+              )
                   : ListView.builder(
                 itemCount: notices.length,
                 itemBuilder: (context, index) {

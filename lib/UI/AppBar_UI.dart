@@ -1,3 +1,4 @@
+import 'dart:convert'; // FlutterSecureStorage 데이터 변환용
 import 'package:academy_manager/API/AppBar_API.dart';
 import 'package:academy_manager/UI/AppSettings_UI.dart';
 import 'package:academy_manager/UI/BillList_UI.dart';
@@ -10,6 +11,7 @@ import 'package:academy_manager/UI/QuizList_UI.dart';
 import 'package:academy_manager/UI/ScoreGraph_UI.dart';
 import 'package:academy_manager/UI/ViewScore_UI.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart'; // SecureStorage 추가
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/main.dart';
 
@@ -75,10 +77,6 @@ class _MenuDrawerState extends State<MenuDrawer> {
   bool isGradeClicked = false;
   bool isExpenseClicked = false;
   bool isSubjectClicked = false;
-  String? token;
-  String? refreshToken;
-  String? userId;
-  String? academyId;
 
   final AppbarApi _appBarApi = AppbarApi();
 
@@ -91,37 +89,24 @@ class _MenuDrawerState extends State<MenuDrawer> {
   }
 
   Future<void> _initialize() async {
-    token = await _appBarApi.getAccessToken();
-    refreshToken = await _appBarApi.getRefreshToken();
-    userId = await _appBarApi.getUserId();
-    academyId = await _appBarApi.getAcademyId();
-
-    if (token != null && refreshToken != null) {
-      await _appBarApi.addTokenInterceptors(token, refreshToken);
-    }
-
-    var info = await _appBarApi.getInfo();
-    setState(() {
-      name = info['user_name'];
-      email = info['email'];
-    });
-
-    await _loadSubjects();
-  }
-
-  Future<void> _loadSubjects() async {
     try {
-      final fetchedSubjects = await _appBarApi.getStoredSubjects();
+      // 사용자 정보 및 강의 목록 불러오기
+      final userInfo = await _appBarApi.getInfo();
+      final fetchedSubjects = await _appBarApi.fetchAndStoreSubjects();
+
       setState(() {
-        subjects = fetchedSubjects;
+        name = userInfo['user_name'];
+        email = userInfo['email'];
+        subjects = fetchedSubjects; // 강의 목록 저장
       });
     } catch (err) {
-      print("Error loading subjects: $err");
+      print("초기화 중 오류 발생: $err");
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // 강의 목록 위젯
     List<Widget> menuSubjects = subjects.map((subject) {
       return ListTile(
         title: Text(subject['lecture_name'], style: TextStyle(fontSize: 14.sp)),
@@ -164,7 +149,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
               _buildSubMenu("성적조회", () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (builder) => ViewScore(subjects: subjects, academyId: academyId ?? ''),
+                  builder: (builder) => ViewScore(subjects: subjects, academyId: ''),
                 ),
               )),
               _buildSubMenu("강의목록", () => setState(() => isSubjectClicked = !isSubjectClicked)),
@@ -175,6 +160,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
                 ),
             ],
           ),
+          // 기타 메뉴 섹션
           _buildMenuSection(
             title: "학원비",
             isExpanded: isExpenseClicked,
