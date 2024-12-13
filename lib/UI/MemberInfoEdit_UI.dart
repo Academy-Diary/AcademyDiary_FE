@@ -9,7 +9,7 @@ import 'package:email_validator/email_validator.dart';
 
 class MemberInfoEdit extends StatefulWidget {
   final String name, email, phone, id;
-  final ImageProvider image; // 타입을 ImageProvider로 변경
+  final ImageProvider image;
 
   MemberInfoEdit({
     super.key,
@@ -21,32 +21,16 @@ class MemberInfoEdit extends StatefulWidget {
   });
 
   @override
-  State<MemberInfoEdit> createState() => _MemberInfoEditState(
-    name: name,
-    email: email,
-    phone: phone,
-    id: id,
-    image: image,
-  );
+  State<MemberInfoEdit> createState() => _MemberInfoEditState();
 }
 
 class _MemberInfoEditState extends State<MemberInfoEdit> {
-  final String name, email, phone, id;
-  final ImageProvider image;
   XFile? newImage;
   bool isChangeImage = false;
 
   final List<TextEditingController> controller = [];
   final _globalKey = GlobalKey<FormState>();
   final MemberInfoApi memberInfoApi = MemberInfoApi();
-
-  _MemberInfoEditState({
-    required this.name,
-    required this.email,
-    required this.phone,
-    required this.id,
-    required this.image,
-  });
 
   @override
   void initState() {
@@ -55,120 +39,157 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
       controller.add(TextEditingController());
     }
 
+    controller[1].text = widget.email;
+    controller[2].text = widget.phone;
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       memberInfoApi.initTokens();
     });
-
-    controller[1].text = email;
-    controller[2].text = phone;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyAppBar(isSettings: true).build(context),
-      drawer: MenuDrawer(),
+      appBar: MyAppBar().build(context),
       body: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
         child: Column(
           children: [
-            CircleAvatar(
-              backgroundImage: newImage == null
-                  ? image
-                  : FileImage(File(newImage!.path)),
-              radius: 50.r,
-              backgroundColor: Colors.grey[300],
-            ),
-            SizedBox(height: 8.h),
-            TextButton(
-              onPressed: changeImage,
-              child: Text('사진 편집', style: TextStyle(fontSize: 14.sp)),
-            ),
-            SizedBox(height: 20.h),
+            SizedBox(height: 10.h),
+            _buildProfileImage(),
+            SizedBox(height: 30.h),
             _buildInfoForm(),
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(
-                        vertical: 12.h, horizontal: 24.w),
-                    backgroundColor: Color(0xFF565D6D),
-                  ),
-                  onPressed: () {
-                    if (_globalKey.currentState!.validate()) {
-                      submit();
-                    }
-                  },
-                  child: Text(
-                    '저장',
-                    style: TextStyle(color: Colors.white, fontSize: 16.sp),
-                  ),
-                ),
-              ],
-            ),
+            SizedBox(height: 20.h),
+            _buildSaveButton(),
+            SizedBox(height: 10.h),
           ],
         ),
       ),
     );
   }
 
+  Widget _buildProfileImage() {
+    return Column(
+      children: [
+        CircleAvatar(
+          backgroundImage: newImage == null
+              ? widget.image
+              : FileImage(File(newImage!.path)),
+          radius: 70.r,
+          backgroundColor: Colors.grey[300],
+        ),
+        SizedBox(height: 10.h),
+        GestureDetector(
+          onTap: changeImage,
+          child: Column(
+            children: [
+              Divider(
+                color: Colors.black,
+                thickness: 1.w,
+                indent: 100.w,
+                endIndent: 100.w,
+              ),
+              Text(
+                "사진 편집",
+                style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildInfoForm() {
     return Container(
       padding: EdgeInsets.all(16.w),
-      decoration:
-      BoxDecoration(border: Border.all(color: Colors.black, width: 2.w)),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: 2.w),
+        borderRadius: BorderRadius.circular(15.r),
+      ),
       child: Form(
         key: _globalKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("name: $name", style: TextStyle(fontSize: 16.sp)),
+            _buildLabelField("name", widget.name),
             SizedBox(height: 10.h),
-            TextFormField(
-              controller: controller[0],
-              decoration: InputDecoration(labelText: 'password'),
-              obscureText: true,
-            ),
+            _buildPasswordField("password", controller[0]),
             SizedBox(height: 10.h),
-            TextFormField(
-              validator: (value) {
-                if (value != controller[0].text) {
-                  return "두 비밀번호가 다릅니다.";
-                }
-                return null;
-              },
-              decoration: InputDecoration(labelText: 'password 확인'),
-              obscureText: true,
-            ),
+            _buildPasswordField("password 확인", controller[0], isConfirm: true),
             SizedBox(height: 10.h),
-            TextFormField(
-              validator: (value) {
-                if (value.toString().isEmpty) return "email을 입력하세요";
-                if (!EmailValidator.validate(value.toString())) {
-                  return "올바른 형식의 email을 입력하세요";
-                }
-                return null;
-              },
-              controller: controller[1],
-              decoration: InputDecoration(labelText: 'Email'),
-            ),
+            _buildTextField("Email", controller[1], true),
             SizedBox(height: 10.h),
-            TextFormField(
-              validator: (value) {
-                if (value.toString().isEmpty) return "전화번호를 입력하세요";
-                if (!RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$')
-                    .hasMatch(value.toString())) {
-                  return "올바른 형식의 휴대폰번호를 입력하세요";
-                }
-                return null;
-              },
-              controller: controller[2],
-              decoration: InputDecoration(labelText: 'phone'),
-            ),
+            _buildTextField("phone", controller[2], false),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLabelField(String label, String value) {
+    return Row(
+      children: [
+        SizedBox(width: 70.w, child: Text("$label :", style: TextStyle(fontSize: 16.sp))),
+        SizedBox(width: 10.w),
+        Expanded(
+          child: Text(value, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField(String label, TextEditingController ctrl, {bool isConfirm = false}) {
+    return TextFormField(
+      controller: ctrl,
+      obscureText: true,
+      validator: isConfirm
+          ? (value) {
+        if (value != ctrl.text) return "두 비밀번호가 다릅니다.";
+        return null;
+      }
+          : null,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.r)),
+      ),
+    );
+  }
+
+  Widget _buildTextField(String label, TextEditingController ctrl, bool isEmail) {
+    return TextFormField(
+      controller: ctrl,
+      validator: (value) {
+        if (value!.isEmpty) return "$label을 입력하세요.";
+        if (isEmail && !EmailValidator.validate(value)) {
+          return "올바른 형식의 Email을 입력하세요.";
+        }
+        if (!isEmail && !RegExp(r'^010-?([0-9]{4})-?([0-9]{4})$').hasMatch(value)) {
+          return "올바른 형식의 휴대폰번호를 입력하세요.";
+        }
+        return null;
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10.r)),
+      ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Center(
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Color(0xFF565D6D),
+          padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 80.w),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.r),
+          ),
+        ),
+        onPressed: () {
+          if (_globalKey.currentState!.validate()) submit();
+        },
+        child: Text("저장", style: TextStyle(color: Colors.white, fontSize: 18.sp)),
       ),
     );
   }
@@ -176,20 +197,15 @@ class _MemberInfoEditState extends State<MemberInfoEdit> {
   void submit() async {
     try {
       var response = await memberInfoApi.updateBasicInfo(
-          id, controller[0].text, controller[1].text, controller[2].text);
+          widget.id, controller[0].text, controller[1].text, controller[2].text);
 
       if (isChangeImage) {
-        await memberInfoApi.updateProfileImage(id, newImage!);
+        await memberInfoApi.updateProfileImage(widget.id, newImage!);
       }
 
       if (response.statusCode == 200) {
-        Fluttertoast.showToast(
-            msg: "정상적으로 변경이 완료되었습니다.",
-            backgroundColor: Colors.grey);
-        Navigator.pop(context, {
-          'refresh': true,
-          if (isChangeImage) 'profile': File(newImage!.path),
-        });
+        Fluttertoast.showToast(msg: "정상적으로 변경이 완료되었습니다.", backgroundColor: Colors.grey);
+        Navigator.pop(context, {'refresh': true});
       }
     } catch (err) {
       print(err);

@@ -74,6 +74,7 @@ flutter:
      - img/default.png
      - assets/fonts/
      - assets/icons/kakao_icon.png
+     - assets/icons/calender.png
 
   fonts:
     - family: PretendardBold
