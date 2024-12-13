@@ -1,3 +1,4 @@
+import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -12,27 +13,26 @@ class ChattingRoomUI extends StatefulWidget {
 }
 
 class _ChattingRoomUIState extends State<ChattingRoomUI> {
-  final FlutterSecureStorage storage = FlutterSecureStorage(); // SecureStorage 인스턴스
+  final FlutterSecureStorage storage = FlutterSecureStorage();
   late IO.Socket socket;
   List<Map<String, dynamic>> messages = [];
   TextEditingController messageController = TextEditingController();
-  String? userId; // 저장된 ID를 담을 변수
+  String? userId;
 
   @override
   void initState() {
     super.initState();
-    _loadUserId(); // ID를 불러옴
+    _loadUserId();
   }
 
-  // ID 불러오기
   Future<void> _loadUserId() async {
     try {
-      final storedUserId = await storage.read(key: 'user_id'); // 저장된 ID 가져오기
+      final storedUserId = await storage.read(key: 'user_id');
       if (storedUserId != null) {
         setState(() {
-          userId = storedUserId; // 저장된 ID를 state에 저장
+          userId = storedUserId;
         });
-        connectSocket(); // ID를 가져온 후 소켓 연결
+        connectSocket();
       } else {
         print("User ID not found in storage");
       }
@@ -42,14 +42,11 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
   }
 
   void connectSocket() {
-    if (userId == null) return; // userId가 없으면 연결하지 않음
+    if (userId == null) return;
 
     socket = IO.io(
-      'http://192.168.200.139:8000', // 서버 주소
-      IO.OptionBuilder()
-          .setTransports(['websocket'])
-          .disableAutoConnect()
-          .build(),
+      'http://192.168.200.139:8000',
+      IO.OptionBuilder().setTransports(['websocket']).build(),
     );
 
     socket.onConnect((_) {
@@ -57,7 +54,7 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
 
       socket.emit('create or join room', {
         'roomId': widget.roomId,
-        'userId': userId, // 불러온 userId 사용
+        'userId': userId,
       });
 
       socket.on('chat message', (data) {
@@ -65,7 +62,7 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
           messages.add({
             'userId': data['userId'] ?? 'unknown',
             'message': data['message'] ?? '',
-            'timestamp': data['timestamp'] ?? '',
+            'timestamp': _formatTimestamp(data['timestamp']),
           });
         });
       });
@@ -75,7 +72,7 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
           messages = List<Map<String, dynamic>>.from(data.map((msg) => {
             'userId': msg['userId'] ?? 'unknown',
             'message': msg['message'] ?? '',
-            'timestamp': msg['timestamp'] ?? '',
+            'timestamp': _formatTimestamp(msg['timestamp']),
           }));
         });
       });
@@ -88,22 +85,26 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
     socket.connect();
   }
 
+  String _formatTimestamp(String? timestamp) {
+    if (timestamp == null || timestamp.isEmpty) return "";
+    try {
+      final time = DateTime.parse(timestamp).toLocal();
+      return "${time.hour}:${time.minute.toString().padLeft(2, '0')}";
+    } catch (_) {
+      return "";
+    }
+  }
+
   void sendMessage() {
     if (messageController.text.isNotEmpty && userId != null) {
       final message = messageController.text;
       socket.emit('chat message', {
         'roomId': widget.roomId,
-        'userId': userId, // 저장된 ID를 사용
+        'userId': userId,
         'message': message,
+        'timestamp': DateTime.now().toUtc().toString(),
       });
-      setState(() {
-        messages.add({
-          'userId': userId, // 저장된 ID를 로컬에서도 사용
-          'message': message,
-          'timestamp': DateTime.now().toString(),
-        });
-        messageController.clear();
-      });
+      messageController.clear(); // 텍스트 필드만 초기화
     }
   }
 
@@ -112,8 +113,6 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
     if (userId != null) {
       socket.emit('leave room', {'roomId': widget.roomId, 'userId': userId});
     }
-    socket.off('chat message');
-    socket.off('all messages');
     socket.disconnect();
     super.dispose();
   }
@@ -121,56 +120,81 @@ class _ChattingRoomUIState extends State<ChattingRoomUI> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("채팅방")),
+      appBar: MyAppBar().build(context),
+      drawer: MenuDrawer(),
       body: userId == null
-          ? Center(child: CircularProgressIndicator()) // ID를 로드할 때 로딩 표시
+          ? Center(child: CircularProgressIndicator())
           : Column(
         children: [
           Expanded(
             child: ListView.builder(
+              padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
               itemCount: messages.length,
               itemBuilder: (context, index) {
                 final message = messages[index];
-                final senderId = message['userId'] ?? 'unknown';
-                final msg = message['message'] ?? '';
-                final timestamp = message['timestamp'] != null
-                    ? DateTime.parse(message['timestamp'])
-                    .toLocal()
-                    .toString()
-                    .substring(0, 16)
-                    : '';
+                final isMe = message['userId'] == userId;
 
-                return ListTile(
-                  title: Text(senderId),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(msg),
-                      SizedBox(height: 5),
-                      Text(timestamp,
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey)),
-                    ],
+                return Align(
+                  alignment:
+                  isMe ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: EdgeInsets.symmetric(vertical: 5),
+                    padding: EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                          color: Colors.grey.shade400, width: 1),
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                        bottomLeft: isMe
+                            ? Radius.circular(12)
+                            : Radius.zero,
+                        bottomRight: isMe
+                            ? Radius.zero
+                            : Radius.circular(12),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          message['message'],
+                          style: TextStyle(fontSize: 14),
+                        ),
+                        SizedBox(height: 2),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Text(
+                            message['timestamp'],
+                            style: TextStyle(
+                                fontSize: 10, color: Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: EdgeInsets.all(8.0),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: messageController,
                     decoration: InputDecoration(
-                      hintText: "메시지를 입력하세요",
-                      border: OutlineInputBorder(),
+                      hintText: "메시지를 입력하세요...",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
                   ),
                 ),
+                SizedBox(width: 10),
                 IconButton(
-                  icon: Icon(Icons.send),
+                  icon: Icon(Icons.send, color: Colors.black),
                   onPressed: sendMessage,
                 ),
               ],

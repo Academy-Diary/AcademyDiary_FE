@@ -24,16 +24,21 @@ class MyAppBar extends StatelessWidget {
   @override
   PreferredSizeWidget build(BuildContext context) {
     return AppBar(
-      iconTheme: const IconThemeData(color: Colors.white),
-      backgroundColor: const Color(0xFF565D6D),
+      iconTheme: const IconThemeData(color: Color(0xFF064420)),
+      backgroundColor: const Color(0xFFEEEBDD),
       title: const Text(
-        'AcademyPro',
-        style: TextStyle(color: Colors.white),
+        '아카데미 다이어리',
+        style: TextStyle(
+          color: Colors.black,
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
+        ),
       ),
       centerTitle: true,
+      elevation: 0,
       actions: [
         IconButton(
-          icon: const Icon(Icons.notifications),
+          icon: const Icon(Icons.notifications, color: Color(0xFF064420)),
           onPressed: () {
             Navigator.push(
               context,
@@ -42,7 +47,9 @@ class MyAppBar extends StatelessWidget {
           },
         ),
         IconButton(
-          icon: isSettings ? const Icon(Icons.settings) : const Icon(Icons.person),
+          icon: isSettings
+              ? const Icon(Icons.settings, color: Color(0xFF064420))
+              : const Icon(Icons.person, color: Color(0xFF064420)),
           onPressed: () {
             if (isSettings) {
               Navigator.push(
@@ -90,14 +97,13 @@ class _MenuDrawerState extends State<MenuDrawer> {
 
   Future<void> _initialize() async {
     try {
-      // 사용자 정보 및 강의 목록 불러오기
       final userInfo = await _appBarApi.getInfo();
       final fetchedSubjects = await _appBarApi.fetchAndStoreSubjects();
 
       setState(() {
         name = userInfo['user_name'];
         email = userInfo['email'];
-        subjects = fetchedSubjects; // 강의 목록 저장
+        subjects = fetchedSubjects;
       });
     } catch (err) {
       print("초기화 중 오류 발생: $err");
@@ -106,7 +112,6 @@ class _MenuDrawerState extends State<MenuDrawer> {
 
   @override
   Widget build(BuildContext context) {
-    // 강의 목록 위젯
     List<Widget> menuSubjects = subjects.map((subject) {
       return ListTile(
         title: Text(subject['lecture_name'], style: TextStyle(fontSize: 14.sp)),
@@ -122,60 +127,84 @@ class _MenuDrawerState extends State<MenuDrawer> {
     }).toList();
 
     return Drawer(
+      backgroundColor: Colors.white,
       child: Column(
         children: [
-          SizedBox(
-            height: 140.h,
-            child: UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: Color(0xFF565D6D)),
-              accountName: Text(name ?? "Loading...", style: TextStyle(fontSize: 18.sp)),
-              accountEmail: Text(email ?? "Loading...", style: TextStyle(fontSize: 14.sp)),
+          // 상단 헤더 부분
+        Container(
+        height: 62.h,
+        color: const Color(0xFFEEEBDD),
+        alignment: Alignment.center,
+        padding: EdgeInsets.only(top: 8.h), // 글씨를 아래로 내리기 위해 추가
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+        Expanded(
+        child: Center( // 글씨를 정확히 가운데 정렬
+        child: Text(
+          "전체 메뉴",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+      ),
+    ),
+    Padding(
+    padding: EdgeInsets.only(right: 20.w), // 햄버거 아이콘 오른쪽 여백
+    child: const Icon(Icons.menu, color: Colors.black),
+    ),
+              ],
             ),
           ),
+          // 공지사항 섹션
           _buildMenuSection(
             title: "공지사항",
             isExpanded: isNoticeClicked,
             onTap: () => setState(() => isNoticeClicked = !isNoticeClicked),
             children: [
-              _buildSubMenu("학원공지", () => Navigator.push(context, MaterialPageRoute(builder: (builder) => const NoticeList()))),
-              _buildSubMenu("수업공지", () => Navigator.push(context, MaterialPageRoute(builder: (builder) => const NoticeList(isAcademy: false)))),
+              _buildSubMenu("학원 공지", () => Navigator.push(context, MaterialPageRoute(builder: (builder) => const NoticeList()))),
+              _buildSubMenu("수업 공지", () => Navigator.push(context, MaterialPageRoute(builder: (builder) => const NoticeList(isAcademy: false)))),
             ],
           ),
+          // 성적 관리 섹션
           _buildMenuSection(
-            title: "성적관리",
+            title: "성적 관리",
             isExpanded: isGradeClicked,
             onTap: () => setState(() => isGradeClicked = !isGradeClicked),
             children: [
-              _buildSubMenu("성적조회", () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (builder) => ViewScore(subjects: subjects, academyId: ''),
-                ),
-              )),
-              _buildSubMenu("강의목록", () => setState(() => isSubjectClicked = !isSubjectClicked)),
+              _buildSubMenu("전체성적조회", () => Navigator.push(context, MaterialPageRoute(builder: (builder) => ViewScore(subjects: subjects, academyId: '')))),
+              _buildSubMenu("강의 목록", () => setState(() => isSubjectClicked = !isSubjectClicked)),
               if (isSubjectClicked)
                 Padding(
-                  padding: EdgeInsets.fromLTRB(15.w, 0, 0, 0),
+                  padding: EdgeInsets.only(left: 20.w),
                   child: Column(children: menuSubjects),
                 ),
             ],
           ),
-          // 기타 메뉴 섹션
+          // 학원비 섹션
           _buildMenuSection(
             title: "학원비",
             isExpanded: isExpenseClicked,
             onTap: () => setState(() => isExpenseClicked = !isExpenseClicked),
             children: [
-              _buildSubMenu("청구서 조회", () => Navigator.push(context, MaterialPageRoute(builder: (builder) => const Bill()))),
+              _buildSubMenu("청구서 확인", () => Navigator.push(context, MaterialPageRoute(builder: (builder) => const Bill()))),
               _buildSubMenu("납부 현황", () => Navigator.push(context, MaterialPageRoute(builder: (builder) => const BillList()))),
             ],
           ),
           ListTile(
-            title: const Text("쪽지시험"),
+            title: const Text("쪽지시험",
+            style: TextStyle(
+              fontSize: 20
+            ),),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (builder) => QuizListPage())),
           ),
           ListTile(
-            title: const Text("채팅"),
+            title: const Text("채팅",
+            style: TextStyle(
+              fontSize: 20
+            ),),
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (builder) => ChattingListUI())),
           ),
           const Spacer(),
@@ -204,18 +233,18 @@ class _MenuDrawerState extends State<MenuDrawer> {
     return Column(
       children: [
         ListTile(
-          title: Text(title, style: TextStyle(fontSize: 16.sp)),
+          title: Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold)),
           trailing: Icon(isExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down),
           onTap: onTap,
         ),
-        if (isExpanded) Padding(padding: EdgeInsets.only(left: 15.w), child: Column(children: children)),
+        if (isExpanded) Column(children: children),
       ],
     );
   }
 
   Widget _buildSubMenu(String title, VoidCallback onTap) {
     return ListTile(
-      title: Text(title, style: TextStyle(fontSize: 15.sp)),
+      title: Text(title, style: TextStyle(fontSize: 14.sp)),
       onTap: onTap,
     );
   }

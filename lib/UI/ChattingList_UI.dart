@@ -1,3 +1,4 @@
+import 'package:academy_manager/UI/AppBar_UI.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:academy_manager/UI/ChattingRoom_UI.dart';
@@ -45,7 +46,8 @@ class _ChattingListUIState extends State<ChattingListUI> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("채팅")),
+      appBar: MyAppBar().build(context),
+      drawer: MenuDrawer(),
       floatingActionButton: FloatingActionButton(
         onPressed: fetchTeacherList,
         child: Icon(Icons.refresh),

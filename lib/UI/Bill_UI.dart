@@ -61,29 +61,19 @@ class _BillState extends State<Bill> {
           children: [
             Center(
               child: Text(
-                '$name님 학원비 청구서',
-                style: TextStyle(fontSize: 24.sp),
-              ),
-            ),
-            18.verticalSpace,
-            ...bills.map((bill) => _buildBillCard(bill)).toList(),
-            100.verticalSpace,
-            Center(
-              child: SizedBox(
-                width: 188.w,
-                height: 60.h,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: 결제 기능 추가
-                    print('결제하기 버튼 클릭');
-                  },
-                  child: Text(
-                    "결제하기",
-                    style: TextStyle(fontSize: 18.sp),
-                  ),
+                '$name님 청구서',
+                style: TextStyle(
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
+            SizedBox(height: 18.h),
+            ...bills.map((bill) => _buildBillCard(bill)).toList(),
+            SizedBox(height: 30.h),
+            _buildTotalSection(),
+            SizedBox(height: 20.h),
+            _buildPayButton(),
           ],
         ),
       ),
@@ -92,13 +82,21 @@ class _BillState extends State<Bill> {
 
   Widget _buildBillCard(Map<String, dynamic> bill) {
     bool isPaid = bill['paid'] ?? false;
+
     return Container(
-      width: 320.w,
       margin: EdgeInsets.symmetric(vertical: 8.h),
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: Color(0xFFD9D9D9),
-        borderRadius: BorderRadius.circular(8.r),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade300,
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          )
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,31 +104,83 @@ class _BillState extends State<Bill> {
           Align(
             alignment: Alignment.topRight,
             child: Text(
-              isPaid ? "납부 완료" : "미납부",
+              isPaid ? "납부 완료" : "미납",
               style: TextStyle(
                 color: isPaid ? Colors.green : Colors.red,
-                fontSize: 12.sp,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
           ),
           SizedBox(height: 10.h),
-          Text(
-            "이름 : $name\n"
-                "수강반: ${bill['class_name']}\n"
-                "수업료: ₩${bill['amount']}\n"
-                "납부 기한: ${bill['deadline']}",
-            style: TextStyle(fontSize: 16.sp),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                bill['class_name']?.toString() ?? '알 수 없음',
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              ),
+              Text(
+                "${bill['amount']?.toString()} ₩",
+                style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
-          SizedBox(height: 10.h),
-          Align(
-            alignment: Alignment.centerRight,
-            child: Text(
-              "Total: ₩${bill['amount']}",
-              style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
-            ),
+          SizedBox(height: 8.h),
+          Text(
+            "납부 기한: ${bill['deadline']?.toString()}",
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey.shade700),
           ),
         ],
+      ),
+    );
+  }
+
+  // 하단 총 금액 및 결제 버튼
+  Widget _buildTotalSection() {
+    int totalAmount = bills.fold(
+        0, (sum, bill) => sum + (int.tryParse(bill['amount'].toString()) ?? 0));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Divider(thickness: 1, color: Colors.grey),
+        SizedBox(height: 10.h),
+        Text(
+          "🧾 이번 달 총 납부 금액",
+          style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+        ),
+        SizedBox(height: 8.h),
+        Text(
+          "${totalAmount.toString()} ₩",
+          style: TextStyle(
+              fontSize: 24.sp, fontWeight: FontWeight.bold, color: Colors.black),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPayButton() {
+    return Center(
+      child: SizedBox(
+        width: 200.w,
+        height: 50.h,
+        child: ElevatedButton(
+          onPressed: () {
+            // 결제 기능 구현
+            print("결제하기 버튼 클릭");
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF024F51),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30.r),
+            ),
+          ),
+          child: Text(
+            "결제하기",
+            style: TextStyle(fontSize: 18.sp, color: Colors.white),
+          ),
+        ),
       ),
     );
   }

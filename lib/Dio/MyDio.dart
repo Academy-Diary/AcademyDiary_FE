@@ -11,7 +11,7 @@ class MyDio{
   MyDio() {
     // 기본 정보
     dio.options.baseUrl =
-    'http://10.224.113.230:8000'; //개발 중 주소는 내 아이피 localhost는 x
+    'http://192.168.200.139:8000'; //개발 중 주소는 내 아이피 localhost는 x
 
     dio.options.connectTimeout = const Duration(seconds: 5); // 5s
     dio.options.receiveTimeout = const Duration(seconds: 10);

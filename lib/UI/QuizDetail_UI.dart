@@ -4,8 +4,9 @@ import 'package:academy_manager/API/Quiz_API.dart';
 
 class QuizDetailPage extends StatefulWidget {
   final int examId;
+  final String examName; // 퀴즈 이름 추가
 
-  QuizDetailPage({required this.examId});
+  QuizDetailPage({required this.examId, required this.examName});
 
   @override
   _QuizDetailPageState createState() => _QuizDetailPageState();
@@ -64,24 +65,22 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
 
   // 다음 문제로 이동
   void _goToNextQuestion() {
-    // 선택한 답 저장
     if (_selectedAnswerIndex != null && _markedAnswers.length < _maxQuestions) {
       _markedAnswers.add(_selectedAnswerIndex!);
     }
 
-    // 다음 문제로 이동 또는 제출
     if (_currentQuestionIndex < _maxQuestions - 1) {
       setState(() {
         _currentQuestionIndex++;
       });
       _fetchQuestion();
     } else {
-      _submitQuiz(); // 마지막 문제에서는 제출
+      _submitQuiz(); // 마지막 문제에서 제출
     }
   }
 
+  // 퀴즈 제출
   void _submitQuiz() async {
-    // 마지막 선택한 답 저장
     if (_selectedAnswerIndex != null && _markedAnswers.length < _maxQuestions) {
       _markedAnswers.add(_selectedAnswerIndex!);
     }
@@ -96,7 +95,6 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
         markedAnswers: _markedAnswers,
       );
 
-      // 결과 표시
       int correctCount = 0;
       int incorrectCount = 0;
 
@@ -124,7 +122,7 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
                 child: Text("확인"),
                 onPressed: () {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pop(); // 퀴즈 목록으로 돌아가기
+                  Navigator.of(context).pop();
                 },
               ),
             ],
@@ -140,72 +138,112 @@ class _QuizDetailPageState extends State<QuizDetailPage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("쪽지시험 문제"),
+        backgroundColor: Color(0xFFF4F1DE),
+        title: Text(
+          widget.examName, // examName 추가
+          style: TextStyle(
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+        iconTheme: IconThemeData(color: Colors.black),
+        elevation: 0,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _currentQuestion == null
-          ? Center(child: Text("문제를 더 이상 불러올 수 없습니다.")) // 모든 문제를 다 푼 경우
+          ? Center(child: Text("문제를 더 이상 불러올 수 없습니다."))
           : Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 문제 번호 표시
             Text(
               "문제 ${_currentQuestionIndex + 1} / $_maxQuestions",
-              style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
             ),
-            SizedBox(height: 20.h),
-            // 문제 내용
+            SizedBox(height: 15.h),
             Text(
               _currentQuestion!["question"] ?? "문제를 가져올 수 없습니다.",
-              style: TextStyle(fontSize: 18.sp),
-            ),
-            SizedBox(height: 20.h),
-            // 선택지 리스트
-            Column(
-              children: List.generate(
-                (_currentQuestion!["options"] as List<dynamic>).length,
-                    (index) {
-                  return RadioListTile<int>(
-                    title: Text(_currentQuestion!["options"][index]),
-                    value: index,
-                    groupValue: _selectedAnswerIndex,
-                    onChanged: (value) {
-                      _selectAnswer(value!);
-                    },
-                  );
-                },
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.black87,
               ),
             ),
             SizedBox(height: 20.h),
-            // 버튼 영역
+            ...List.generate(
+              (_currentQuestion!["options"] as List<dynamic>).length,
+                  (index) => RadioListTile<int>(
+                title: Text(
+                  _currentQuestion!["options"][index],
+                  style: TextStyle(fontSize: 16.sp),
+                ),
+                value: index,
+                groupValue: _selectedAnswerIndex,
+                activeColor: Colors.green,
+                onChanged: (value) => _selectAnswer(value!),
+              ),
+            ),
+            SizedBox(height: 20.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (_currentQuestionIndex > 0)
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _currentQuestionIndex--;
-                        _markedAnswers.removeLast(); // 이전 답안 제거
-                      });
-                      _fetchQuestion();
-                    },
-                    child: Text("이전 문제"),
+                ElevatedButton(
+                  onPressed: _currentQuestionIndex > 0
+                      ? () {
+                    setState(() {
+                      _currentQuestionIndex--;
+                      _markedAnswers.removeLast();
+                    });
+                    _fetchQuestion();
+                  }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.grey.shade300,
+                    padding: EdgeInsets.symmetric(
+                        vertical: 12.h, horizontal: 20.w),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
                   ),
+                  child: Text(
+                    "이전 문제",
+                    style: TextStyle(fontSize: 16.sp, color: Colors.black87),
+                  ),
+                ),
                 ElevatedButton(
                   onPressed: _goToNextQuestion,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _currentQuestionIndex ==
+                        _maxQuestions - 1
+                        ? Colors.orange
+                        : Colors.grey.shade300,
+                    padding: EdgeInsets.symmetric(
+                        vertical: 12.h, horizontal: 20.w),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
                   child: Text(
                     _currentQuestionIndex == _maxQuestions - 1
                         ? "제출하기"
                         : "다음 문제",
+                    style: TextStyle(
+                        fontSize: 16.sp,
+                        color: _currentQuestionIndex == _maxQuestions - 1
+                            ? Colors.white
+                            : Colors.black87),
                   ),
                 ),
               ],

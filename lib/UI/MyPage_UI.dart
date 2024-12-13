@@ -13,7 +13,7 @@ class MyPage extends StatefulWidget {
 
 class _MyPageState extends State<MyPage> {
   final MyPageApi myPageApi = MyPageApi();
-  String? profileImageUrl; // 서버에서 제공한 프로필 이미지 URL
+  String? profileImageUrl;
   String? name = "", id = "", email = "", phone = "", role = "", family = "";
 
   @override
@@ -29,16 +29,11 @@ class _MyPageState extends State<MyPage> {
       await myPageApi.initTokens();
 
       String? userId = await MyPageApi.storage.read(key: 'user_id');
-      print("불러온 ID: $userId"); // 디버깅용 로그 추가
-
       if (userId == null || userId.isEmpty) {
-        print("ID not found in storage.");
         Fluttertoast.showToast(msg: "ID를 찾을 수 없습니다. 다시 로그인해주세요.");
         return;
       }
 
-      // 사용자 정보 및 이미지 URL 가져오기
-      print("Fetching user info for ID: $userId");
       var userInfo = await myPageApi.fetchUserInfo(userId);
       var imageUrl = await myPageApi.downloadUserProfileImage(userId);
 
@@ -50,11 +45,10 @@ class _MyPageState extends State<MyPage> {
           phone = userInfo['data']['phone_number'] ?? '';
           role = userInfo['data']['role'] == "STUDENT" ? "학생" : "학부모";
           family = userInfo['data']['family'] ?? '';
-          profileImageUrl = imageUrl ?? ''; // 이미지 URL
+          profileImageUrl = imageUrl ?? '';
         });
       }
     } catch (e) {
-      print("Error loading user data: $e");
       if (mounted) {
         Fluttertoast.showToast(msg: "회원 정보를 불러오는 중 오류가 발생했습니다.");
       }
@@ -64,29 +58,22 @@ class _MyPageState extends State<MyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: MyAppBar(isSettings: true).build(context),
+      appBar: MyAppBar(isSettings: true,).build(context),
       drawer: MenuDrawer(),
       body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: 20.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Center(
-              child: CircleAvatar(
-                foregroundImage: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
-                    ? NetworkImage(profileImageUrl!)
-                    : AssetImage('img/default.png') as ImageProvider,
-                radius: 60.r,
-                backgroundColor: Colors.grey[300],
-              ),
-            ),
-            SizedBox(height: 30.h),
+            SizedBox(height: 20.h), // 헤더와 프로필 이미지 간격
+            _buildProfileImage(),
+            SizedBox(height: 30.h), // 프로필 이미지와 정보 간 간격
             _buildUserInfo(),
             if (role == "학부모" && family != null && family!.isNotEmpty) ...[
               SizedBox(height: 20.h),
               _buildStudentInfo(),
             ],
-            Spacer(),
+            SizedBox(height: 30.h), // 네모 박스와 버튼 간격
             _buildEditButton(),
           ],
         ),
@@ -94,21 +81,48 @@ class _MyPageState extends State<MyPage> {
     );
   }
 
+  Widget _buildProfileImage() {
+    return Center(
+      child: CircleAvatar(
+        foregroundImage: (profileImageUrl != null && profileImageUrl!.isNotEmpty)
+            ? NetworkImage(profileImageUrl!)
+            : AssetImage('img/default.png') as ImageProvider,
+        radius: 80.r,
+        backgroundColor: Colors.grey[300],
+      ),
+    );
+  }
+
   Widget _buildUserInfo() {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(20.w),
       width: double.infinity,
-      decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2.w)),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.black, width: 2.w),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("name: $name($role)", style: TextStyle(fontSize: 18.sp)),
-          SizedBox(height: 10.h),
-          Text("ID: $id", style: TextStyle(fontSize: 18.sp)),
-          SizedBox(height: 10.h),
-          Text("Email: $email", style: TextStyle(fontSize: 18.sp)),
-          SizedBox(height: 10.h),
-          Text("phone: $phone", style: TextStyle(fontSize: 18.sp)),
+          Text(
+            "name: $name($role)",
+            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w500),
+          ),
+          SizedBox(height: 20.h),
+          Text(
+            "ID: $id",
+            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w500),
+          ),
+          SizedBox(height: 20.h),
+          Text(
+            "Email: $email",
+            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w500),
+          ),
+          SizedBox(height: 20.h),
+          Text(
+            "phone: $phone",
+            style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );
@@ -116,13 +130,19 @@ class _MyPageState extends State<MyPage> {
 
   Widget _buildStudentInfo() {
     return Container(
-      padding: EdgeInsets.all(16.w),
+      padding: EdgeInsets.all(20.w),
       width: double.infinity,
-      decoration: BoxDecoration(border: Border.all(color: Colors.blue, width: 2.w)),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.blue, width: 2.w),
+        borderRadius: BorderRadius.circular(20.r),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("학생 아이디: $family", style: TextStyle(fontSize: 18.sp, color: Colors.blue)),
+          Text(
+            "학생 아이디: $family",
+            style: TextStyle(fontSize: 20.sp, color: Colors.blue, fontWeight: FontWeight.w500),
+          ),
         ],
       ),
     );
@@ -131,7 +151,10 @@ class _MyPageState extends State<MyPage> {
   Widget _buildEditButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(vertical: 14.h, horizontal: 36.w),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(30.r),
+        ),
+        padding: EdgeInsets.symmetric(vertical: 16.h, horizontal: 36.w),
         backgroundColor: Color(0xFF565D6D),
       ),
       onPressed: () async {
@@ -145,7 +168,7 @@ class _MyPageState extends State<MyPage> {
               id: id.toString(),
               image: profileImageUrl != null && profileImageUrl!.isNotEmpty
                   ? NetworkImage(profileImageUrl!)
-                  : AssetImage('img/default.png'), // 기본 이미지 전달
+                  : AssetImage('img/default.png'),
             ),
           ),
         );
@@ -153,7 +176,10 @@ class _MyPageState extends State<MyPage> {
           _loadData();
         }
       },
-      child: Text('회원정보 수정', style: TextStyle(color: Colors.white, fontSize: 16.sp)),
+      child: Text(
+        '회원정보 수정',
+        style: TextStyle(color: Colors.white, fontSize: 18.sp),
+      ),
     );
   }
 }
